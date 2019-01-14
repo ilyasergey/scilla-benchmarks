@@ -24,7 +24,7 @@ def keccak256(string):
 def solc_compile_contract(contract_path, contract_name):
     output_path = os.path.join(output_dir, contract_name+'.bin')
     subprocess.call(['solc', '--bin', '--optimize', '--overwrite',
-                     '-o', output_path, contract_path])
+                     '-o', output_dir, contract_path])
     bytecode = None
     with open(output_path) as f:
         bytecode = f.read()
@@ -38,15 +38,15 @@ def deploy_contract(bytecode):
     deploy_output = subprocess.check_output(
         [evm_exec, '--code', bytecode, '--datadir', evm_data_dir])
     prefix = 'Contract Address: '
-    prefix_pos = deploy_output.find(prefix)
+    prefix_pos = deploy_output.decode('utf-8').find(prefix)
     address_start_pos = prefix_pos+len(prefix)
     address_end_pos = address_start_pos + 40
-    contract_address = deploy_output[address_start_pos:address_end_pos+1]
-    return contract_address
+    contract_address = deploy_output[address_start_pos:address_end_pos]
+    return '0x'+contract_address.decode('utf-8')
 
 
-def encode_input(function_name, *args):
-    signature = keccak256(function_name)[:8]
+def encode_input(function_name, args):
+    signature = keccak256(function_name.encode('utf-8'))[:8]
     hex_args = ''
 
     for arg in args:
@@ -55,6 +55,8 @@ def encode_input(function_name, *args):
             hex_arg = binascii.hexlify(arg)
         elif isinstance(arg, int):
             hex_arg = hex(arg)[2:].zfill(64)
+        else:
+            raise ValueError("Invalid type for argument")
         hex_args += hex_arg
 
     return signature + hex_args
@@ -83,7 +85,7 @@ def main():
             'contract_filename': 'add.sol',
             'contract_name': 'Addition',
             'transactions': [
-                ('add', 4, 5)
+                ('add(int256,int256)', 4, 5)
             ]
         }
 
