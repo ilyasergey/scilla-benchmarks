@@ -10,7 +10,7 @@ evm_exec = os.path.join(GO_ROOT, 'evm')
 disasm_exec = os.path.join(GO_ROOT, 'disasm')
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
-output_path = os.path.join(current_dir, 'output')
+output_dir = os.path.join(current_dir, 'output')
 evm_data_dir = os.path.join(current_dir, 'evm-data')
 contracts_dir = os.path.join(current_dir, 'contracts')
 
@@ -21,8 +21,9 @@ def keccak256(string):
     return keccak_hash.hexdigest()
 
 
-def solc_compile_contract(contract_path):
-    subprocess.call(['solc', '--bin', '--optimize',
+def solc_compile_contract(contract_path, contract_name):
+    output_path = os.path.join(output_dir, contract_name+'.bin')
+    subprocess.call(['solc', '--bin', '--optimize', '--overwrite',
                      '-o', output_path, contract_path])
     bytecode = None
     with open(output_path) as f:
@@ -66,8 +67,10 @@ def perform_transaction(address, function_name, *args):
 
 
 def run_benchmark(contract_plan):
-    contract_path = os.path.join(contracts_dir, contract_plan['contract_name'])
-    bytecode = solc_compile_contract(contract_path)
+    contract_path = os.path.join(
+        contracts_dir, contract_plan['contract_filename'])
+    bytecode = solc_compile_contract(
+        contract_path, contract_plan['contract_name'])
     address = deploy_contract(bytecode)
 
     for tx_plan in contract_plan['transactions']:
@@ -75,10 +78,10 @@ def run_benchmark(contract_plan):
 
 
 def main():
-
     contracts_plans = [
         {
-            'contract_name': 'add.sol',
+            'contract_filename': 'add.sol',
+            'contract_name': 'Addition',
             'transactions': [
                 ('add', 4, 5)
             ]
