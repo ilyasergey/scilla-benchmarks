@@ -10,7 +10,7 @@ evm_exec = os.path.join(GO_ROOT, 'evm')
 disasm_exec = os.path.join(GO_ROOT, 'disasm')
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
-output_path = os.path.join(current_dir, 'output', 'output.bin')
+output_path = os.path.join(current_dir, 'output')
 evm_data_dir = os.path.join(current_dir, 'evm-data')
 contracts_dir = os.path.join(current_dir, 'contracts')
 
@@ -44,7 +44,7 @@ def deploy_contract(bytecode):
     return contract_address
 
 
-def encode_input(function_name, args*):
+def encode_input(function_name, *args):
     signature = keccak256(function_name)[:8]
     hex_args = ''
 
@@ -59,7 +59,7 @@ def encode_input(function_name, args*):
     return signature + hex_args
 
 
-def perform_transaction(address, function_name, args*):
+def perform_transaction(address, function_name, *args):
     encoded_input = encode_input(function_name, args)
     subprocess.call(
         [evm_exec, '--datadir', evm_data_dir, '--to', address, '--input', encoded_input])
