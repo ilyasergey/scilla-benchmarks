@@ -52,17 +52,13 @@ def deploy_contract(bytecode, *constructor_args):
     return '0x'+contract_address.decode('utf-8')
 
 
-def encode_input(function_name, *args):
-    signature = keccak256(function_name.encode('utf-8'))[:8]
-    arg_types = function_name[function_name.find(
-        '(')+1:function_name.find(')')]
-    arg_types = arg_types.split(',')
-    hex_args = encode_args(arg_types, args)
-    return signature + hex_args
+def encode_input(function, *args):
+    hex_args = encode_args(function.arg_types, args)
+    return function.get_signature() + hex_args
 
 
 def perform_transaction(address, function, *args):
-    encoded_input = encode_input(function.get_signature(), *args)
+    encoded_input = encode_input(function, *args)
     subprocess.call(
         [evm_exec, '--datadir', evm_data_dir, '--to', address, '--input', encoded_input, '--from', SENDER_ADDRESS])
 
@@ -123,15 +119,15 @@ def main():
             ],
             'tests': [
                 {
-                    'function': ContractFunction('transfer', ('address', 'uint256'))
+                    'function': ContractFunction('transfer', ('address', 'uint256')),
                     'iterations': 100
                 },
                 {
-                    'function': ContractFunction('burn', ('uint256'))
+                    'function': ContractFunction('burn', ('uint256')),
                     'iterations': 100
                 },
                 {
-                    'function': ContractFunction('approve', ('address', 'uint256'))
+                    'function': ContractFunction('approve', ('address', 'uint256')),
                     'iterations': 100
                 },
             ]
