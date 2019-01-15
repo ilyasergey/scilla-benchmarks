@@ -61,10 +61,19 @@ def encode_input(function_name, *args):
     return signature + hex_args
 
 
-def perform_transaction(address, function_name, *args):
-    encoded_input = encode_input(function_name, *args)
+def perform_transaction(address, function, *args):
+    encoded_input = encode_input(function.get_signature(), *args)
     subprocess.call(
         [evm_exec, '--datadir', evm_data_dir, '--to', address, '--input', encoded_input, '--from', SENDER_ADDRESS])
+
+
+def run_test(test_plan):
+    pass
+
+
+def run_tests(address, tests):
+    for test_plan in tests:
+        perform_transaction()
 
 
 def run_benchmark(contract_plan):
@@ -75,21 +84,26 @@ def run_benchmark(contract_plan):
     address = deploy_contract(bytecode, *contract_plan['constructor'])
     print('Contract deployed at', address)
 
+    # populating the contract state
     for tx_plan in contract_plan['transactions']:
         perform_transaction(address, *tx_plan)
 
+    # run_tests(address, contract_plan['tests'])
 
-def get_token_transactions(times):
-    address = generate_address()
-    transactions = []
-    for time in range(times):
-        transaction = ('transfer(address,uint256)', address, 1*(10**16))
-        transactions.append(transaction)
-    return transactions
+
+class ContractFunction():
+    def __init__(self, name, arg_types):
+        self.name = name
+        self.arg_types = arg_types
+
+    def get_signature(self):
+        name_with_args = '{}({})'.format(self.name, ','.join(self.arg_types))
+        signature = keccak256(name_with_args.encode('utf-8'))[:8]
+        return signature
 
 
 def main():
-    total_token_supply = 1000000
+    total_token_supply = 1000000 * 10**16
     contracts_plans = [
         # {
         #    'contract_filename': 'add.sol',
@@ -102,11 +116,25 @@ def main():
         {
             'contract_filename': 'token.sol',
             'contract_name': 'TokenERC20',
-            'constructor': (('uint256', 'string', 'string'), (total_token_supply * 10**16, 'Test', 'TEST')),
+            'constructor': (('uint256', 'string', 'string'), (total_token_supply, 'Test', 'TEST')),
             'transactions': [
-                ('transfer(address,uint256)', addr, 1*(10**16))
+                (ContractFunction('transfer', ('address', 'uint256')), addr, 1*(10**16))
                 for addr in get_addresses()
             ],
+            'tests': [
+                {
+                    'function': ContractFunction('transfer', ('address', 'uint256'))
+                    'iterations': 100
+                },
+                {
+                    'function': ContractFunction('burn', ('uint256'))
+                    'iterations': 100
+                },
+                {
+                    'function': ContractFunction('approve', ('address', 'uint256'))
+                    'iterations': 100
+                },
+            ]
         }
 
     ]
