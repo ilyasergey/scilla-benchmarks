@@ -2,7 +2,7 @@ import os
 import binascii
 import subprocess
 from eth_abi import encode_abi
-from Crypto.Hash import keccak
+from utils import keccak256, generate_address
 
 
 GO_ROOT = os.environ['GOROOT']
@@ -17,12 +17,6 @@ contracts_dir = os.path.join(current_dir, 'contracts')
 
 SENDER_ADDRESS = '0xfaB8FcF1b5fF9547821B4506Fa0C35c68a555F90'
 SENDER_PRIVKEY = '4bc95d997c4c700bb4769678fa8452c2f67c9348e33f6f32b824253ae29a5316'
-
-
-def keccak256(string):
-    keccak_hash = keccak.new(digest_bits=256)
-    keccak_hash.update(string)
-    return keccak_hash.hexdigest()
 
 
 def solc_compile_contract(contract_path, contract_name):
@@ -45,7 +39,8 @@ def deploy_contract(bytecode, *constructor_args):
     if constructor_args:
         bytecode += encode_args(arg_types, arg_values)
 
-    call_args = [evm_exec, '--code', bytecode, '--datadir', evm_data_dir, '--from', SENDER_ADDRESS]
+    call_args = [evm_exec, '--code', bytecode, '--datadir',
+                 evm_data_dir, '--from', SENDER_ADDRESS]
     deploy_output = subprocess.check_output(call_args)
     print(deploy_output.decode('utf-8'))
 
@@ -60,7 +55,8 @@ def deploy_contract(bytecode, *constructor_args):
 
 def encode_input(function_name, *args):
     signature = keccak256(function_name.encode('utf-8'))[:8]
-    arg_types = function_name[function_name.find('(')+1:function_name.find(')')]
+    arg_types = function_name[function_name.find(
+        '(')+1:function_name.find(')')]
     arg_types = arg_types.split(',')
     hex_args = encode_args(arg_types, args)
     return signature + hex_args
@@ -84,23 +80,31 @@ def run_benchmark(contract_plan):
         perform_transaction(address, *tx_plan)
 
 
+def get_token_transactions(times):
+    address = generate_address()
+    transactions = []
+    for time in times:
+        transaction = ('transfer(address,uint256)', address, 1*(10**16))
+        transactions.append(transaction)
+    return transactions
+
+
 def main():
+    total_token_supply = 1000000
     contracts_plans = [
-        #{
+        # {
         #    'contract_filename': 'add.sol',
         #    'contract_name': 'Addition',
         #    'constructor': (),
         #    'transactions': [
         #        ('add(int256,int256)', 4, 5)
         #    ]
-        #},
+        # },
         {
             'contract_filename': 'token.sol',
             'contract_name': 'TokenERC20',
-            'constructor': (('uint256', 'string', 'string'), (1000000, 'Test', 'TEST')),
-            'transactions': [
-                ('transfer(address,uint256)', '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE', 1000),
-            ]
+            'constructor': (('uint256', 'string', 'string'), (total_token_supply * 10**16, 'Test', 'TEST')),
+            'transactions': get_token_transactions(total_token_supply)
         }
 
     ]
@@ -110,4 +114,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
