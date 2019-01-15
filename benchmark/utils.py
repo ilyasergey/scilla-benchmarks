@@ -2,6 +2,7 @@ from Crypto.Hash import keccak
 import uuid
 from ecdsa import SigningKey, SECP256k1
 import sha3
+import json
 
 
 def keccak256(string):
@@ -31,3 +32,19 @@ def generate_address():
     keccak.update(pub)
     address = keccak.hexdigest()[24:]
     return checksum_encode(address)
+
+
+def generate_addresses(no_of_addresses):
+    return [generate_address() for i in range(no_of_addresses)]
+
+
+def get_addresses():
+    addresses = None
+    with open('addresses.json') as f:
+        addresses = json.load(f)
+    return addresses
+
+
+if __name__ == '__main__':
+    with open('addresses.json', 'w') as f:
+        json.dump(generate_addresses(1000), f)

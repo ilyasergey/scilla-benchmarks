@@ -2,7 +2,7 @@ import os
 import binascii
 import subprocess
 from eth_abi import encode_abi
-from utils import keccak256, generate_address
+from utils import keccak256, generate_address, get_addresses
 
 
 GO_ROOT = os.environ['GOROOT']
@@ -103,7 +103,7 @@ def main():
             'contract_filename': 'token.sol',
             'contract_name': 'TokenERC20',
             'constructor': (('uint256', 'string', 'string'), (total_token_supply * 10**16, 'Test', 'TEST')),
-            'transactions': get_token_transactions(total_token_supply)
+            'transactions': [('transfer(address,uint256)', addr, 1*(10**16)) for addr in get_addresses],
         }
 
     ]
