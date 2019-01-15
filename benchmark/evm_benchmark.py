@@ -103,7 +103,10 @@ def main():
             'contract_filename': 'token.sol',
             'contract_name': 'TokenERC20',
             'constructor': (('uint256', 'string', 'string'), (total_token_supply * 10**16, 'Test', 'TEST')),
-            'transactions': [('transfer(address,uint256)', addr, 1*(10**16)) for addr in get_addresses],
+            'transactions': [
+                ('transfer(address,uint256)', addr, 1*(10**16))
+                for addr in get_addresses()
+            ],
         }
 
     ]

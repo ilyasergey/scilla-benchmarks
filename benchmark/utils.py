@@ -1,4 +1,5 @@
 from Crypto.Hash import keccak
+import os
 import uuid
 from ecdsa import SigningKey, SECP256k1
 import sha3
@@ -40,7 +41,9 @@ def generate_addresses(no_of_addresses):
 
 def get_addresses():
     addresses = None
-    with open('addresses.json') as f:
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    filepath = os.path.join(current_dir, 'addresses.json')
+    with open(filepath) as f:
         addresses = json.load(f)
     return addresses
 
