@@ -61,14 +61,13 @@ def deploy_contract(bytecode, *constructor_args):
 def encode_input(function_name, *args):
     signature = keccak256(function_name.encode('utf-8'))[:8]
     arg_types = function_name[function_name.find('(')+1:function_name.find(')')]
-    arg_types = ','.split(arg_types)
+    arg_types = arg_types.split(',')
     hex_args = encode_args(arg_types, args)
     return signature + hex_args
 
 
 def perform_transaction(address, function_name, *args):
     encoded_input = encode_input(function_name, *args)
-    print('Encoded input', encoded_input)
     subprocess.call(
         [evm_exec, '--datadir', evm_data_dir, '--to', address, '--input', encoded_input, '--from', SENDER_ADDRESS])
 
@@ -100,7 +99,7 @@ def main():
             'contract_name': 'TokenERC20',
             'constructor': (('uint256', 'string', 'string'), (1000000, 'Test', 'TEST')),
             'transactions': [
-                #('transfer(address,uint256)', '3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE', 1000),
+                ('transfer(address,uint256)', '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE', 1000),
             ]
         }
 
