@@ -42,7 +42,6 @@ def deploy_contract(bytecode, *constructor_args):
     call_args = [evm_exec, '--code', bytecode, '--datadir',
                  evm_data_dir, '--from', SENDER_ADDRESS]
     deploy_output = subprocess.check_output(call_args)
-    print(deploy_output.decode('utf-8'))
 
     prefix = 'Contract Address: '
     prefix_pos = deploy_output.decode('utf-8').find(prefix)
@@ -83,7 +82,7 @@ def run_benchmark(contract_plan):
 def get_token_transactions(times):
     address = generate_address()
     transactions = []
-    for time in times:
+    for time in range(times):
         transaction = ('transfer(address,uint256)', address, 1*(10**16))
         transactions.append(transaction)
     return transactions
