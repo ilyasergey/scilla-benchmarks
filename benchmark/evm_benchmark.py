@@ -31,24 +31,8 @@ def solc_compile_contract(contract_path, contract_name):
     return bytecode
 
 
-# def generate_deploy_bytecode(bytecode):
-
-
-def deploy_contract(bytecode):
-    deploy_output = subprocess.check_output(
-        [evm_exec, '--code', bytecode, '--datadir', evm_data_dir])
-    prefix = 'Contract Address: '
-    prefix_pos = deploy_output.decode('utf-8').find(prefix)
-    address_start_pos = prefix_pos+len(prefix)
-    address_end_pos = address_start_pos + 40
-    contract_address = deploy_output[address_start_pos:address_end_pos]
-    return '0x'+contract_address.decode('utf-8')
-
-
-def encode_input(function_name, args):
-    signature = keccak256(function_name.encode('utf-8'))[:8]
+def encode_args(*args):
     hex_args = ''
-
     for arg in args:
         hex_arg = None
         if isinstance(arg, str):
@@ -58,12 +42,33 @@ def encode_input(function_name, args):
         else:
             raise ValueError("Invalid type for argument")
         hex_args += hex_arg
+    return hex_args
 
+
+def deploy_contract(bytecode, *constructor_args):
+    call_args = [evm_exec, '--code', bytecode, '--datadir', evm_data_dir]
+
+    if constructor_args:
+        call_args.append('--input')
+        call_args.append(encode_args(*constructor_args))
+
+    deploy_output = subprocess.check_output(call_args)
+    prefix = 'Contract Address: '
+    prefix_pos = deploy_output.decode('utf-8').find(prefix)
+    address_start_pos = prefix_pos+len(prefix)
+    address_end_pos = address_start_pos + 40
+    contract_address = deploy_output[address_start_pos:address_end_pos]
+    return '0x'+contract_address.decode('utf-8')
+
+
+def encode_input(function_name, *args):
+    signature = keccak256(function_name.encode('utf-8'))[:8]
+    hex_args = encode_args(*args)
     return signature + hex_args
 
 
 def perform_transaction(address, function_name, *args):
-    encoded_input = encode_input(function_name, args)
+    encoded_input = encode_input(function_name, *args)
     subprocess.call(
         [evm_exec, '--datadir', evm_data_dir, '--to', address, '--input', encoded_input])
 
@@ -73,7 +78,7 @@ def run_benchmark(contract_plan):
         contracts_dir, contract_plan['contract_filename'])
     bytecode = solc_compile_contract(
         contract_path, contract_plan['contract_name'])
-    address = deploy_contract(bytecode)
+    address = deploy_contract(bytecode, *contract_plan['constructor'])
 
     for tx_plan in contract_plan['transactions']:
         perform_transaction(address, *tx_plan)
@@ -84,6 +89,15 @@ def main():
         {
             'contract_filename': 'add.sol',
             'contract_name': 'Addition',
+            'constructor': (,),
+            'transactions': [
+                ('add(int256,int256)', 4, 5)
+            ]
+        },
+        {
+            'contract_filename': 'token.sol',
+            'contract_name': 'TokenERC20',
+            'constructor': (1000000, 'Test', 'TEST'),
             'transactions': [
                 ('add(int256,int256)', 4, 5)
             ]
