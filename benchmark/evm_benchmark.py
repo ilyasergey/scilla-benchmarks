@@ -7,6 +7,7 @@ from utils import keccak256, generate_address,\
     get_addresses, get_directory_size
 import uuid
 import random
+import shutil
 import time
 from statistics import median, mean
 
@@ -153,7 +154,8 @@ def run_benchmark(contract_plan):
     print('Contract bytecode size: {:,} bytes'.format(
         len(bytecode.encode('utf-8'))))
 
-    populate_evm_state(address, contract_plan['transactions'])
+    txn_limit = contract_plan['transactions_limit']
+    populate_evm_state(address, contract_plan['transactions'][:txn_limit])
 
     print('\nInitial EVM database size: {:,} bytes\n'.format(
         measure_evm_data_size()))
@@ -174,6 +176,9 @@ class ContractFunction():
 
 
 def main():
+    # clear the EVM data directory
+    shutil.rmtree(evm_data_dir)
+
     total_token_supply = 1000000 * 10**16
     contracts_benchmark_plans = [
         # {
@@ -190,12 +195,13 @@ def main():
             'constructor': (
                 ('uint256', 'string', 'string'),
                 (total_token_supply, 'Test', 'TEST')),
+            'transactions_limit': 1000,
             'transactions': [
                 (
                     ContractFunction('transfer', ('address', 'uint256')),
                     addr, 1*(10**16)
                 )
-                for addr in get_addresses()[:10]
+                for addr in get_addresses()
             ],
             'tests': [
                 {
