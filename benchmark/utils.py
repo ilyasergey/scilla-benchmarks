@@ -57,6 +57,17 @@ def get_directory_size(start_path='.'):
     return total_size
 
 
+class ContractFunction():
+    def __init__(self, name, arg_types):
+        self.name = name
+        self.arg_types = arg_types
+
+    def get_signature(self):
+        name_with_args = '{}({})'.format(self.name, ','.join(self.arg_types))
+        signature = keccak256(name_with_args.encode('utf-8'))[:8]
+        return signature
+
+
 if __name__ == '__main__':
     with open('addresses.json', 'w') as f:
         json.dump(generate_addresses(1000), f)

@@ -10,6 +10,7 @@ import random
 import shutil
 import time
 from statistics import median, mean
+from benchmark_plans import contracts_benchmark_plans
 
 
 GO_ROOT = os.environ['GOROOT']
@@ -164,60 +165,10 @@ def run_benchmark(contract_plan):
         measure_evm_data_size()))
 
 
-class ContractFunction():
-    def __init__(self, name, arg_types):
-        self.name = name
-        self.arg_types = arg_types
-
-    def get_signature(self):
-        name_with_args = '{}({})'.format(self.name, ','.join(self.arg_types))
-        signature = keccak256(name_with_args.encode('utf-8'))[:8]
-        return signature
-
-
 def main():
     # clear the EVM data directory
-    shutil.rmtree(evm_data_dir)
-
-    total_token_supply = 1000000 * 10**16
-    contracts_benchmark_plans = [
-        # {
-        #    'contract_filename': 'add.sol',
-        #    'contract_name': 'Addition',
-        #    'constructor': (),
-        #    'transactions': [
-        #        ('add(int256,int256)', 4, 5)
-        #    ]
-        # },
-        {
-            'contract_filename': 'token.sol',
-            'contract_name': 'TokenERC20',
-            'constructor': (
-                ('uint256', 'string', 'string'),
-                (total_token_supply, 'Test', 'TEST')),
-            'transactions_limit': 1000,
-            'transactions': [
-                (
-                    ContractFunction('transfer', ('address', 'uint256')),
-                    addr, 1*(10**16)
-                )
-                for addr in get_addresses()
-            ],
-            'tests': [
-                {
-                    'function': ContractFunction(
-                        'transfer', ('address', 'uint256')),
-                    'iterations': 100
-                },
-                {
-                    'function': ContractFunction(
-                        'approve', ('address', 'uint256')),
-                    'iterations': 100
-                },
-            ]
-        }
-
-    ]
+    if os.path.isdir(evm_data_dir):
+        shutil.rmtree(evm_data_dir)
     for plan in contracts_benchmark_plans:
         run_benchmark(plan)
 
