@@ -2,7 +2,12 @@ import os
 import binascii
 import subprocess
 from eth_abi import encode_abi
-from utils import keccak256, generate_address, get_addresses
+from utils import keccak256, generate_address,\
+    get_addresses, get_directory_size
+import uuid
+import random
+import time
+from statistics import median, mean
 
 
 GO_ROOT = os.environ['GOROOT']
@@ -64,16 +69,49 @@ def encode_input(function_name, *args):
 def perform_transaction(address, function, *args):
     encoded_input = encode_input(function.get_signature(), *args)
     subprocess.call(
-        [evm_exec, '--datadir', evm_data_dir, '--to', address, '--input', encoded_input, '--from', SENDER_ADDRESS])
+        [evm_exec, '--datadir', evm_data_dir, '--to', address,
+         '--input', encoded_input, '--from', SENDER_ADDRESS])
 
 
-def run_test(test_plan):
-    pass
+def generate_random_params(arg_types):
+    values = []
+    for arg_type in arg_types:
+        if arg_type == 'address':
+            values.append(random.choice(get_addresses()))
+        elif arg_type == 'string':
+            values.append(str(uuid.uuid4()))
+        else:
+            values.append(random.randint(1, 100000))
+    return values
+
+
+def measure_evm_data_size():
+    leveldb_dir = os.path.join(evm_data_dir, 'evm')
+    data_size = get_directory_size(leveldb_dir)
+    return data_size
 
 
 def run_tests(address, tests):
     for test_plan in tests:
-        perform_transaction()
+        iterations = test_plan['iterations']
+        function = test_plan['function']
+        print('Running {} iterations of {} function'.format(
+            iterations, function.name))
+
+        execution_times = []
+
+        for iteration in range(iterations):
+            args = generate_random_params(function.arg_types)
+            start = time.time()
+            perform_transaction(address, function, args)
+            end = time.time()
+            execution_times.append(end-start)
+
+        print('Ran {} iterations of {} function'.format(
+            iterations, function.name))
+        print('New database size: {}'.format(measure_evm_data_size()))
+        print('Median execution time: {}'.format(median(execution_times)))
+        print('Mean execution time: {}'.format(mean(execution_times)))
 
 
 def run_benchmark(contract_plan):
@@ -88,7 +126,9 @@ def run_benchmark(contract_plan):
     for tx_plan in contract_plan['transactions']:
         perform_transaction(address, *tx_plan)
 
-    # run_tests(address, contract_plan['tests'])
+    print('Initial EVM database size: {}'.format(measure_evm_data_size()))
+    run_tests(address, contract_plan['tests'])
+    print('Final EVM database size: {}'.format(measure_evm_data_size()))
 
 
 class ContractFunction():
@@ -104,7 +144,7 @@ class ContractFunction():
 
 def main():
     total_token_supply = 1000000 * 10**16
-    contracts_plans = [
+    contracts_benchmark_plans = [
         # {
         #    'contract_filename': 'add.sol',
         #    'contract_name': 'Addition',
@@ -116,14 +156,20 @@ def main():
         {
             'contract_filename': 'token.sol',
             'contract_name': 'TokenERC20',
-            'constructor': (('uint256', 'string', 'string'), (total_token_supply, 'Test', 'TEST')),
+            'constructor': (
+                ('uint256', 'string', 'string'),
+                (total_token_supply, 'Test', 'TEST')),
             'transactions': [
-                (ContractFunction('transfer', ('address', 'uint256')), addr, 1*(10**16))
+                (
+                    ContractFunction('transfer', ('address', 'uint256')),
+                    addr, 1*(10**16)
+                )
                 for addr in get_addresses()
             ],
             'tests': [
                 {
-                    'function': ContractFunction('transfer', ('address', 'uint256'))
+                    'function': ContractFunction(
+                        'transfer', ('address', 'uint256'))
                     'iterations': 100
                 },
                 {
@@ -131,14 +177,15 @@ def main():
                     'iterations': 100
                 },
                 {
-                    'function': ContractFunction('approve', ('address', 'uint256'))
+                    'function': ContractFunction(
+                        'approve', ('address', 'uint256'))
                     'iterations': 100
                 },
             ]
         }
 
     ]
-    for plan in contracts_plans:
+    for plan in contracts_benchmark_plans:
         run_benchmark(plan)
 
 
