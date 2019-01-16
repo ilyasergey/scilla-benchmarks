@@ -10,7 +10,7 @@ import random
 import shutil
 import time
 from statistics import median, mean
-from benchmark_plans import contracts_benchmark_plans
+from benchmark_plans import contracts_benchmark_plans, SENDER_ADDRESS
 
 
 GO_ROOT = os.environ['GOROOT']
@@ -23,17 +23,14 @@ output_dir = os.path.join(current_dir, 'output')
 evm_data_dir = os.path.join(current_dir, 'evm-data')
 contracts_dir = os.path.join(current_dir, 'contracts')
 
-SENDER_ADDRESS = '0xfaB8FcF1b5fF9547821B4506Fa0C35c68a555F90'
-SENDER_PRIVKEY = '4bc95d997c4c700bb4769678fa8452c2f67c9348e33f6f32b824253ae29a5316'
-
 devnull_file = open(os.devnull, 'w')
 
 
 def solc_compile_contract(contract_path, contract_name):
     output_path = os.path.join(output_dir, contract_name+'.bin')
     subprocess.check_output(['solc', '--bin', '--optimize', '--overwrite',
-                             '-o', output_dir, contract_path],
-                            stderr=devnull_file)
+                             '-o', output_dir, contract_path],)
+    # stderr=devnull_file)
     print('Compiled {} to {}'.format(contract_name, output_path))
     bytecode = None
     with open(output_path) as f:
