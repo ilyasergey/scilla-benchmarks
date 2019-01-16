@@ -1,3 +1,4 @@
+import re
 import os
 import binascii
 import subprocess
@@ -44,6 +45,9 @@ def deploy_contract(bytecode, *constructor_args):
     if constructor_args:
         bytecode += encode_args(arg_types, arg_values)
 
+    gas_cost = measure_gas_cost(bytecode)
+    print('Total gas cost:', gas_cost)
+
     call_args = [evm_exec, '--code', bytecode, '--datadir',
                  evm_data_dir, '--from', SENDER_ADDRESS]
     deploy_output = subprocess.check_output(call_args)
@@ -88,10 +92,13 @@ def measure_evm_data_size():
 
 
 def measure_gas_cost(bytecode):
+    f = open(os.devnull, 'w')
     debug_output = subprocess.check_output(
-        [evm_exec, '--debug', '--code', bytecode])
-    costs = re.compile('COST: (\d*)').findall(s)
+        [evm_exec, '--debug', '--code', bytecode], stderr=f)
+    print(debug_output)
+    costs = re.compile('COST: (\d*)').findall(debug_output.decode('utf-8'))
     costs = [int(s) for s in costs]
+    print(costs)
     return sum(costs)
 
 
@@ -124,10 +131,8 @@ def run_benchmark(contract_plan):
     bytecode = solc_compile_contract(
         contract_path, contract_plan['contract_name'])
     address = deploy_contract(bytecode, *contract_plan['constructor'])
-    gas_cost = measure_gas_cost(bytecode)
     print('Contract deployed at:', address)
-    print('Contract bytecode size:', len(bytecode))
-    print('Total gas cost:', gas_cost)
+    print('Contract bytecode size:', len(bytecode.encode('utf-8')))
 
     # populating the contract state
     for tx_plan in contract_plan['transactions']:
@@ -166,29 +171,29 @@ def main():
             'constructor': (
                 ('uint256', 'string', 'string'),
                 (total_token_supply, 'Test', 'TEST')),
-            'transactions': [
-                (
-                    ContractFunction('transfer', ('address', 'uint256')),
-                    addr, 1*(10**16)
-                )
-                for addr in get_addresses()
-            ],
-            'tests': [
-                {
-                    'function': ContractFunction(
-                        'transfer', ('address', 'uint256')),
-                    'iterations': 100
-                },
-                {
-                    'function': ContractFunction('burn', ('uint256')),
-                    'iterations': 100
-                },
-                {
-                    'function': ContractFunction(
-                        'approve', ('address', 'uint256')),
-                    'iterations': 100
-                },
-            ]
+            #'transactions': [
+            #    (
+            #        ContractFunction('transfer', ('address', 'uint256')),
+            #        addr, 1*(10**16)
+            #    )
+            #    for addr in get_addresses()
+            #],
+            #'tests': [
+            #    {
+            #        'function': ContractFunction(
+            #            'transfer', ('address', 'uint256')),
+            #        'iterations': 100
+            #    },
+            #    {
+            #        'function': ContractFunction('burn', ('uint256')),
+            #        'iterations': 100
+            #    },
+            #    {
+            #        'function': ContractFunction(
+            #            'approve', ('address', 'uint256')),
+            #        'iterations': 100
+            #    },
+            #]
         }
 
     ]
