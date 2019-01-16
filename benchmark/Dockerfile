@@ -4,19 +4,30 @@ ENV PATH=/usr/lib/go-1.9/bin:$PATH
 
 RUN \
   apt-get update && apt-get upgrade -q -y && \
-  apt-get install -y --no-install-recommends golang-1.9 git make gcc libc-dev ca-certificates && \
-  export GOPATH=/home/docker/go && \
-  export GOROOT=/usr/lib/go-1.9 && \
+  apt-get install -y --no-install-recommends golang-1.9 git make gcc libc-dev ca-certificates curl software-properties-common
+
+RUN \
+  add-apt-repository ppa:ethereum/ethereum && \
+  add-apt-repository ppa:deadsnakes/ppa && \
+  apt-get update && \
+  apt-get -y install solc python3.6 python3.6-dev && \
+  curl https://bootstrap.pypa.io/get-pip.py | python3.6
+
+ENV GOPATH=/home/docker/go
+ENV GOROOT=/usr/lib/go-1.9
+ENV GOBIN=/usr/lib/go-1.9
+
+RUN \
   curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh && \
   mkdir -p $GOPATH/src/github.com/CoinCulture && \
-  git clone https://github.com/CoinCulture/evm-tools $GOPATH/src/github.com/CoinCulture/evm-tools && \
-  cd $GOPATH/src/github.com/CoinCulture/evm-tools && \
-  dep ensure && \
-  make && \
-  apt-get remove -y golang-1.9 git make gcc libc-dev && apt autoremove -y && apt-get clean
+  git clone https://github.com/CoinCulture/evm-tools $GOPATH/src/github.com/CoinCulture/evm-tools
 
-ADD . /code/
+
+WORKDIR $GOPATH/src/github.com/CoinCulture/evm-tools
+
+RUN $GOROOT/dep ensure && make
 
 WORKDIR /code/
-
-ENTRYPOINT ["./build/bin/geth"]
+ADD requirements.txt /code/
+RUN pip install -r requirements.txt
+ADD . /code/

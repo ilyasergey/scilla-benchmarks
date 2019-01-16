@@ -91,6 +91,14 @@ def measure_evm_data_size():
     return data_size
 
 
+def measure_gas_cost(bytecode):
+    debug_output = subprocess.check_output(
+        [evm_exec, '--debug', '--code', bytecode])
+    costs = re.compile('COST: (\d*)').findall(s)
+    costs = [int(s) for s in costs]
+    return sum(costs)
+
+
 def run_tests(address, tests):
     for test_plan in tests:
         iterations = test_plan['iterations']
@@ -120,15 +128,18 @@ def run_benchmark(contract_plan):
     bytecode = solc_compile_contract(
         contract_path, contract_plan['contract_name'])
     address = deploy_contract(bytecode, *contract_plan['constructor'])
-    print('Contract deployed at', address)
+    gas_cost = measure_gas_cost(bytecode)
+    print('Contract deployed at:', address)
+    print('Contract bytecode size:', len(bytecode))
+    print('Total gas cost:', gas_cost)
 
     # populating the contract state
     for tx_plan in contract_plan['transactions']:
         perform_transaction(address, *tx_plan)
 
-    print('Initial EVM database size: {}'.format(measure_evm_data_size()))
+    print('Initial EVM database size:', measure_evm_data_size())
     run_tests(address, contract_plan['tests'])
-    print('Final EVM database size: {}'.format(measure_evm_data_size()))
+    print('Final EVM database size:', measure_evm_data_size())
 
 
 class ContractFunction():
@@ -169,16 +180,16 @@ def main():
             'tests': [
                 {
                     'function': ContractFunction(
-                        'transfer', ('address', 'uint256'))
+                        'transfer', ('address', 'uint256')),
                     'iterations': 100
                 },
                 {
-                    'function': ContractFunction('burn', ('uint256'))
+                    'function': ContractFunction('burn', ('uint256')),
                     'iterations': 100
                 },
                 {
                     'function': ContractFunction(
-                        'approve', ('address', 'uint256'))
+                        'approve', ('address', 'uint256')),
                     'iterations': 100
                 },
             ]

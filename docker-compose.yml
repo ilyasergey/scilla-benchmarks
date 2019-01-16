@@ -2,5 +2,7 @@ version: '3'
 
 services:
   benchmark:
+    command: python3.6 /code/benchmark/while.py
     build: benchmark
-
+    volumes:
+      - .:/code
