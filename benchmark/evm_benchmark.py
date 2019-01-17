@@ -69,11 +69,12 @@ def encode_input(function, *args):
     return function.get_signature() + hex_args
 
 
-def perform_transaction(address, function, *args):
+def perform_transaction(from_address, to_address, function, *args, time=0):
     encoded_input = encode_input(function, *args)
     subprocess.check_output(
-        [evm_exec, '--datadir', evm_data_dir, '--to', address,
-         '--input', encoded_input, '--from', SENDER_ADDRESS],
+        [evm_exec, '--datadir', evm_data_dir, '--to', to_address,
+         '--input', encoded_input, '--from', from_address,
+         '--time', str(time)],
         stderr=devnull_file)
 
 
@@ -104,28 +105,54 @@ def measure_gas_cost(bytecode):
     return sum(costs)
 
 
+def get_value(value_function):
+    if callable(value_function):
+        return value_function()
+    else:
+        return value_function
+
+
 def generate_params(value_functions):
-    return [
-        v() for v in value_functions
-    ]
+    return [get_value(v) for v in value_functions]
+    return values
+
+
+def setup_test(setup_plans, contract_address):
+    for setup_plan in setup_plans:
+        args = generate_params(setup_plan['values'])
+        caller = get_value(setup_plan['caller'])
+        function = setup_plan['function']
+        start = time.time()
+        perform_transaction(caller, contract_address, function, *args)
 
 
 def run_tests(address, tests):
     for test_plan in tests:
-        iterations = test_plan['iterations']
-        function = test_plan['function']
+        test_name = test_plan['test_name']
+
+        setup_plans = test_plan.get('setup_transactions')
+        if setup_plans:
+            print('Setting up `{}`...'.format(test_name))
+            setup_test(setup_plans, address)
+            print('Finished setting up `{}`.'.format(test_name))
+
+        iterations = len(test_plan['transactions'])
         print('Running {} iterations of `{}` function'.format(
-            iterations, function.name))
+            iterations, test_name))
 
         execution_times = []
 
         for iteration in range(iterations):
+            txn_plan = test_plan['transactions'][iteration]
             if iteration % 10 == 0:
                 print('Ran {} iterations'.format(iteration))
-            # args = generate_random_params(function.arg_types)
-            args = generate_params(test_plan['values'])
+            args = generate_params(txn_plan['values'])
+            caller = get_value(txn_plan['caller'])
+            function = txn_plan['function']
+            block_timestamp = txn_plan.get('time', 0)
             start = time.time()
-            perform_transaction(address, function, *args)
+            perform_transaction(caller, address, function,
+                                *args, time=block_timestamp)
             end = time.time()
             execution_times.append(end-start)
 
@@ -143,10 +170,12 @@ def populate_evm_state(address, transactions):
     print(
         '\nPopulating EVM state with {} transactions...'.format(
             len(transactions)))
-    for index, tx_plan in enumerate(transactions):
+    for index, txn_plan in enumerate(transactions):
         if index % 10 == 0:
             print('Executed {} transactions'.format(index))
-        perform_transaction(address, *tx_plan)
+        caller = get_value(txn_plan['caller'])
+        args = generate_params(txn_plan['values'])
+        perform_transaction(caller, address, txn_plan['function'], *args)
 
 
 def run_benchmark(contract_plan):
@@ -159,8 +188,7 @@ def run_benchmark(contract_plan):
     print('Contract bytecode size: {:,} bytes'.format(
         len(bytecode.encode('utf-8'))))
 
-    txn_limit = contract_plan['transactions_limit']
-    populate_evm_state(address, contract_plan['transactions'][:txn_limit])
+    populate_evm_state(address, contract_plan['transactions'])
 
     print('\nInitial EVM database size: {:,} bytes\n'.format(
         measure_evm_data_size()))

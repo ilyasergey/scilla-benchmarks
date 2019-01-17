@@ -85,9 +85,9 @@ def get_random_number():
     return random.randint(1, 100000)
 
 
-def use_address(addr):
+def use_value(val):
     def inner():
-        return addr
+        return val
     return inner
 
 
