@@ -131,75 +131,53 @@ contracts_benchmark_plans = [
     #     ]
     # },
 
-    # {
-    #     'contract_filename': 'auction.sol',
-    #     'contract_name': 'SimpleAuction',
-    #     'constructor': (
-    #         ('uint256', 'address'),
-    #         (1000, SENDER_ADDRESS)
-    #     ),
-    #     'transactions': [
-    #         {
-    #             'function': ContractFunction('bid', ()),
-    #             'values': (),
-    #             'amount': 10 * index,
-    #             'caller': addr
-    #         }
-    #         for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
-    #     ],
-    #     'tests': [
+    {
+        'contract_filename': 'auction.sol',
+        'contract_name': 'SimpleAuction',
+        'constructor': (
+            ('uint256', 'address'),
+            (1000, SENDER_ADDRESS)
+        ),
+        'transactions': [
+            {
+                'function': ContractFunction('bid', ()),
+                'values': (),
+                'amount': 1*index,
+                'caller': addr
+            }
+            for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
+        ],
+        'tests': [
 
-    # {
-    #     'test_name': 'bid',
-    #     'transactions': [
-    #         {
-    #             'function': ContractFunction('bid', ()),
-    #             'values': (),
-    #             'amount': 10,
-    #             'caller': addr,
-    #         }
-    #         for addr in addresses[:TEST_ITERATIONS]
-    #     ]
-    # },
+            {
+                # increment the bid each iteration
+                # so we can do the withdraw function for the losers
+                # there can only be 1 winning bid, so the total number of bids is n+1
+                'test_name': 'bid',
+                'transactions': [
+                    {
+                        'function': ContractFunction('bid', ()),
+                        'values': (),
+                        'amount': 1000*index,
+                        'caller': addr,
+                    }
+                    for index, addr in enumerate(addresses[:TEST_ITERATIONS])
+                ]
+            },
 
-    # {
-    #     'test_name': 'withdraw',
-    #     # increment the bid each iteration
-    #     # so we can do the withdraw function for the losers
-    #     # there can only be 1 winning bid, so the total number of bids is n+1
-    #     'setup_transactions': [
-    #         {
-    #             'function': ContractFunction('bid', ()),
-    #             'values': (),
-    #             'amount': index * 10,
-    #             'caller': addr,
-    #         }
-    #         for index, addr in enumerate(addresses[:TEST_ITERATIONS+1])
-    #     ],
-    #     'transactions': [
-    #         {
-    #             'function': ContractFunction('withdraw', ()),
-    #             'values': (),
-    #             'caller': addr,
-    #         }
-    #         for index, addr in enumerate(addresses[:TEST_ITERATIONS])
-    #     ]
-    # },
-
-    # {
-    #     'test_name': 'getRefund',
-    #     'transactions': [
-    #         {
-    #             'function': ContractFunction('getRefund', ()),
-    #             'values': (),
-    #             'caller': addr,
-    #             'time': 9547698860
-    #         }
-    #         for addr in addresses[:TEST_ITERATIONS]
-    #     ]
-    # },
-    #     ]
-    # },
+            {
+                'test_name': 'withdraw',
+                'transactions': [
+                    {
+                        'function': ContractFunction('withdraw', ()),
+                        'values': (),
+                        'caller': addr,
+                    }
+                    for index, addr in enumerate(addresses[:TEST_ITERATIONS])
+                ]
+            },
+        ]
+    },
 
     # {
     #     'contract_filename': 'crowdfunding.sol',
