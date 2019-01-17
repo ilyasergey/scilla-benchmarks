@@ -1,9 +1,14 @@
-from utils import ContractFunction, get_addresses
+import utils
+from utils import ContractFunction, get_addresses, get_random_address,\
+    use_address, get_random_number
 
 
 SENDER_ADDRESS = '0xfaB8FcF1b5fF9547821B4506Fa0C35c68a555F90'
 SENDER_PRIVKEY = '4bc95d997c4c700bb4769678fa8452c2f67c9348e33f6f32b824253ae29a5316'
 total_token_supply = 1000000 * 10**16
+
+TRANSACTION_LIMIT = 10
+TEST_ITERATIONS = 100
 
 contracts_benchmark_plans = [
     # {
@@ -20,7 +25,7 @@ contracts_benchmark_plans = [
     #     'constructor': (
     #         ('uint256', 'string', 'string'),
     #         (total_token_supply, 'Test', 'TEST')),
-    #     'transactions_limit': 1000,
+    #     'transactions_limit': TRANSACTION_LIMIT,
     #     'transactions': [
     #         (
     #             ContractFunction('transfer', ('address', 'uint256')),
@@ -32,12 +37,14 @@ contracts_benchmark_plans = [
     #         {
     #             'function': ContractFunction(
     #                 'transfer', ('address', 'uint256')),
-    #             'iterations': 100
+    #             'values': (get_random_address, get_random_number),
+    #             'iterations': TEST_ITERATIONS
     #         },
     #         {
     #             'function': ContractFunction(
     #                 'approve', ('address', 'uint256')),
-    #             'iterations': 100
+    #             'values': (get_random_address, get_random_number),
+    #             'iterations': TEST_ITERATIONS
     #         },
     #     ]
     # },
@@ -45,29 +52,34 @@ contracts_benchmark_plans = [
         'contract_filename': 'non-fungible-token.sol',
         'contract_name': 'ERC721',
         'constructor': (
-            ('uint256', 'string', 'string'),
-            (total_token_supply, 'Test', 'TEST')),
-        'transactions_limit': 10,
+            ('uint256',),
+            (TRANSACTION_LIMIT*10,)
+            # ('uint256', 'string', 'string'),
+            # (total_token_supply, 'Test', 'TEST'),
+        ),
+        'transactions_limit': TRANSACTION_LIMIT,
         'transactions': [
             (
                 ContractFunction('safeTransferFrom',
                                  ('address', 'address', 'uint256')),
-                SENDER_ADDRESS, addr, 1*(10**16)
+                SENDER_ADDRESS, addr, index
             )
-            for addr in get_addresses()
+            for index, addr in enumerate(get_addresses())
         ],
-        # 'tests': [
-        #     {
-        #         'function': ContractFunction(
-        #             'safeTransferFrom', ('address', 'address', 'uint256')),
-        #         'iterations': 100
-        #     },
-        #     #     {
-        #     #         'function': ContractFunction(
-        #     #             'approve', ('address', 'uint256')),
-        #     #         'iterations': 100
-        #     #     },
-        # ]
+        'tests': [
+            {
+                'function': ContractFunction(
+                    'safeTransferFrom', ('address', 'address', 'uint256')),
+                'values': (use_address(SENDER_ADDRESS), get_random_address, utils.get_random_token_id),
+                'iterations': TEST_ITERATIONS
+            },
+            {
+                'function': ContractFunction(
+                    'approve', ('address', 'uint256')),
+                'values': (use_address(SENDER_ADDRESS), utils.get_random_token_id),
+                'iterations': TEST_ITERATIONS
+            },
+        ]
     },
 
 ]

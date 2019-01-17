@@ -160,9 +160,16 @@ contract ERC721 is ERC165, IERC721 {
      *     bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
      */
 
-    constructor () public {
+    constructor (uint256 noOfTokens) public {
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721);
+
+        // transfer all the tokens to the owner
+        for (uint i=0; i<noOfTokens; i++) {
+            _tokenOwner[i] = msg.sender;
+        }
+
+        _ownedTokensCount[msg.sender] = noOfTokens;
     }
 
     /**

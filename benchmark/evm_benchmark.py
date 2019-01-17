@@ -44,8 +44,8 @@ def encode_args(types, values):
 
 
 def deploy_contract(bytecode, *constructor_args):
-    arg_types, arg_values = constructor_args
     if constructor_args:
+        arg_types, arg_values = constructor_args
         bytecode += encode_args(arg_types, arg_values)
 
     gas_cost = measure_gas_cost(bytecode)
@@ -104,6 +104,12 @@ def measure_gas_cost(bytecode):
     return sum(costs)
 
 
+def generate_params(value_functions):
+    return [
+        v() for v in value_functions
+    ]
+
+
 def run_tests(address, tests):
     for test_plan in tests:
         iterations = test_plan['iterations']
@@ -116,7 +122,8 @@ def run_tests(address, tests):
         for iteration in range(iterations):
             if iteration % 10 == 0:
                 print('Ran {} iterations'.format(iteration))
-            args = generate_random_params(function.arg_types)
+            # args = generate_random_params(function.arg_types)
+            args = generate_params(test_plan['values'])
             start = time.time()
             perform_transaction(address, function, *args)
             end = time.time()

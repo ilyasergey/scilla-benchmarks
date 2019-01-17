@@ -4,6 +4,7 @@ import uuid
 from ecdsa import SigningKey, SECP256k1
 import sha3
 import json
+import random
 
 
 def keccak256(string):
@@ -36,7 +37,12 @@ def generate_address():
 
 
 def generate_addresses(no_of_addresses):
-    return [generate_address() for i in range(no_of_addresses)]
+    addresses = []
+    for i in range(no_of_addresses):
+        if i % 100 == 0:
+            print('Generated {} addresses'.format(i))
+        addresses.append(generate_address())
+    return addresses
 
 
 def get_addresses():
@@ -68,6 +74,39 @@ class ContractFunction():
         return signature
 
 
+addresses = get_addresses()
+
+
+def get_random_address():
+    return random.choice(addresses)
+
+
+def get_random_number():
+    return random.randint(1, 100000)
+
+
+def use_address(addr):
+    def inner():
+        return addr
+    return inner
+
+
+def generate_random_params(arg_types):
+    values = []
+    for arg_type in arg_types:
+        if arg_type == 'address':
+            values.append(random.choice(get_addresses()))
+        elif arg_type == 'string':
+            values.append(str(uuid.uuid4()))
+        else:
+            values.append(random.randint(1, 100000))
+    return values
+
+
+def get_random_token_id():
+    return random.randint(1, 20000)
+
+
 if __name__ == '__main__':
     with open('addresses.json', 'w') as f:
-        json.dump(generate_addresses(1000), f)
+        json.dump(generate_addresses(10000), f)
