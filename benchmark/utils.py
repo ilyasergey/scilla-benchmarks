@@ -6,6 +6,9 @@ import sha3
 import json
 import random
 
+SENDER_ADDRESS = '0xfaB8FcF1b5fF9547821B4506Fa0C35c68a555F90'
+SENDER_PRIVKEY = '4bc95d997c4c700bb4769678fa8452c2f67c9348e33f6f32b824253ae29a5316'
+
 
 def keccak256(string):
     keccak_hash = keccak.new(digest_bits=256)

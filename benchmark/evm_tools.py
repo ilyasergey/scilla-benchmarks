@@ -1,0 +1,114 @@
+import re
+import os
+import binascii
+import subprocess
+from eth_abi import encode_abi
+from utils import keccak256, generate_address,\
+    get_addresses, get_directory_size, SENDER_ADDRESS
+import uuid
+import random
+import shutil
+import time
+from statistics import median, mean
+
+
+GO_ROOT = os.environ['GOROOT']
+evm_exec = os.path.join(GO_ROOT, 'evm')
+# evm_deploy_exec = os.path.join(GO_ROOT, 'evm')
+disasm_exec = os.path.join(GO_ROOT, 'disasm')
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+output_dir = os.path.join(current_dir, 'output')
+evm_data_dir = os.path.join(current_dir, 'evm-data')
+contracts_dir = os.path.join(current_dir, 'contracts')
+
+devnull_file = open(os.devnull, 'w')
+
+
+def measure_evm_data_size():
+    leveldb_dir = os.path.join(evm_data_dir, 'evm')
+    data_size = get_directory_size(leveldb_dir)
+    return data_size
+
+
+def measure_gas_cost(bytecode):
+    p = subprocess.Popen([evm_exec, '--debug', '--code', bytecode],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    run_output, debug_output = p.communicate()
+    costs = re.compile('COST: (\d*)').findall(debug_output.decode('utf-8'))
+    costs = [int(s) for s in costs]
+    return sum(costs)
+
+
+def solc_compile_contract(contract_path, contract_name):
+    output_path = os.path.join(output_dir, contract_name+'.bin')
+    subprocess.check_output(['solc', '--bin', '--optimize', '--overwrite',
+                             '-o', output_dir, contract_path],
+                            stderr=devnull_file)
+    print('Compiled {} to {}'.format(contract_name, output_path))
+    bytecode = None
+    with open(output_path) as f:
+        bytecode = f.read()
+    return bytecode
+
+
+def get_value(value_function):
+    if callable(value_function):
+        return value_function()
+    else:
+        return value_function
+
+
+def generate_params(value_functions):
+    return [get_value(v) for v in value_functions]
+    return values
+
+
+def encode_args(types, values):
+    hex_args = binascii.hexlify(encode_abi(types, values))
+    return hex_args.decode('utf-8')
+
+
+def deploy_contract(bytecode, *constructor_args):
+    if constructor_args:
+        arg_types, arg_values = constructor_args
+        arg_values = generate_params(arg_values)
+        bytecode += encode_args(arg_types, arg_values)
+
+    gas_cost = measure_gas_cost(bytecode)
+    print('Total gas cost:', gas_cost)
+
+    call_args = [evm_exec, '--code', bytecode, '--datadir',
+                 evm_data_dir, '--from', SENDER_ADDRESS]
+    deploy_output = subprocess.check_output(call_args, stderr=devnull_file)
+
+    prefix = 'Contract Address: '
+    prefix_pos = deploy_output.decode('utf-8').find(prefix)
+    address_start_pos = prefix_pos+len(prefix)
+    address_end_pos = address_start_pos + 40
+    contract_address = deploy_output[address_start_pos:address_end_pos]
+
+    return '0x'+contract_address.decode('utf-8')
+
+
+def encode_input(function, *args):
+    hex_args = encode_args(function.arg_types, args)
+    return function.get_signature() + hex_args
+
+
+def perform_transaction(from_address, to_address, function, *args, time=0, amount=0):
+    encoded_input = encode_input(function, *args)
+    subprocess.check_output(
+        [evm_exec, '--datadir', evm_data_dir, '--to', to_address,
+         '--input', encoded_input, '--from', from_address,
+         '--time', str(time), '--value', str(amount)],
+        stderr=devnull_file)
+
+
+def deploy_etheremon_database_contract():
+    contract_path = os.path.join(
+        contracts_dir, 'etheremon-data.sol')
+    bytecode = solc_compile_contract(
+        contract_path, 'EtheremonDataBase')
+    address = deploy_contract(bytecode)
+    return address
