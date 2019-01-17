@@ -6,8 +6,32 @@ from evm_tools import deploy_etheremon_database_contract
 
 total_token_supply = 1000000 * 10**16
 
-TRANSACTION_LIMIT = 100
+TRANSACTION_LIMIT = 10
 TEST_ITERATIONS = 100
+
+CROWDFUNDING_GOAL = 100
+
+# each pledge must exceed the
+pledge_transactions = [
+    {
+        'function': ContractFunction('pledge', ('uint256',)),
+        'values': (CROWDFUNDING_GOAL+1,),
+        'caller': addr,
+        'amount': CROWDFUNDING_GOAL+1
+    }
+    for addr in addresses[:TEST_ITERATIONS]
+]
+claim_funds_transactions = [
+    {
+        'function': ContractFunction('claimFunds', ()),
+        'values': (),
+        'caller': SENDER_ADDRESS,
+    }
+    for iteration in range(TEST_ITERATIONS)
+]
+interleaved_transactions = pledge_transactions + claim_funds_transactions
+interleaved_transactions[::2] = pledge_transactions
+interleaved_transactions[1::2] = claim_funds_transactions
 
 contracts_benchmark_plans = [
     # {
@@ -177,75 +201,55 @@ contracts_benchmark_plans = [
     #     ]
     # },
 
-    {
-        'contract_filename': 'crowdfunding.sol',
-        'contract_name': 'Crowdfunding',
-        'constructor': (
-            ('uint256', 'uint256'),
-            (1, 100)
-        ),
-        'transactions': [
-            {
-                'function': ContractFunction('pledge', ('uint256',)),
-                'values': (1,),
-                'caller': addr
-            }
-            for addr in addresses[:TRANSACTION_LIMIT]
-        ]+[
-            {
-                'function': ContractFunction('pledge', ('uint256',)),
-                'values': (1,),
-                'caller': addr
-            }
-            for addr in addresses[:TRANSACTION_LIMIT]
-        ],
-        # 'tests': [
-        #     {
-        #         'test_name': 'pledge',
-        #         'transactions': [
-        #             {
-        #                 'function': ContractFunction('pledge', ('uint256',)),
-        #                 'values': (1,),
-        #                 'caller': addr,
-        #             }
-        #             for addr in addresses[:TEST_ITERATIONS]
-        #         ]
-        #     },
+    # {
+    #     'contract_filename': 'crowdfunding.sol',
+    #     'contract_name': 'Crowdfunding',
+    #     'constructor': (
+    #         ('uint256', 'uint256'),
+    #         (1, CROWDFUNDING_GOAL)
+    #     ),
+    #     'transactions': [
+    #         {
+    #             'function': ContractFunction('pledge', ('uint256',)),
+    #             'values': (1,),
+    #             'caller': addr,
+    #             'amount': 1
+    #         }
+    #         for addr in addresses[:TRANSACTION_LIMIT]
+    #     ],
+    #     'tests': [
+    #         {
+    #             'test_name': 'pledge',
+    #             'transactions': [
+    #                 {
+    #                     'function': ContractFunction('pledge', ('uint256',)),
+    #                     'values': (1,),
+    #                     'caller': addr,
+    #                     'amount': 1
+    #                 }
+    #                 for addr in addresses[:TEST_ITERATIONS]
+    #             ]
+    #         },
 
-        #     {
-        #         'test_name': 'claimFunds',
-        #         'setup_transactions': [
-        #             {
-        #                 'function': ContractFunction('pledge', ('uint256',)),
-        #                 'values': (1,),
-        #                 'caller': addr,
-        #             }
-        #             for addr in addresses[:TEST_ITERATIONS]
-        #         ],
-        #         'transactions': [
-        #             {
-        #                 'function': ContractFunction('claimFunds', ()),
-        #                 'values': (),
-        #                 'caller': addr,
-        #             }
-        #             for addr in addresses[:TEST_ITERATIONS]
-        #         ]
-        #     },
+    #         {
+    #             'test_name': 'claimFunds',
+    #             'transactions': interleaved_transactions
+    #         },
 
-        #     {
-        #         'test_name': 'getRefund',
-        #         'transactions': [
-        #             {
-        #                 'function': ContractFunction('getRefund', ()),
-        #                 'values': (),
-        #                 'caller': addr,
-        #                 'time': 9547698860
-        #             }
-        #             for addr in addresses[:TEST_ITERATIONS]
-        #         ]
-        #     },
-        # ]
-    },
+    #         {
+    #             'test_name': 'getRefund',
+    #             'transactions': [
+    #                 {
+    #                     'function': ContractFunction('getRefund', ()),
+    #                     'values': (),
+    #                     'caller': addr,
+    #                     'time': 9547698860
+    #                 }
+    #                 for addr in addresses[:TEST_ITERATIONS]
+    #             ]
+    #         },
+    #     ]
+    # },
 
     # {
     #     'contract_filename': 'etheremon-world.sol',

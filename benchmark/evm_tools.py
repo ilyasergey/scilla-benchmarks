@@ -96,13 +96,23 @@ def encode_input(function, *args):
     return function.get_signature() + hex_args
 
 
-def perform_transaction(from_address, to_address, function, *args, time=0, amount=0):
+def perform_transaction_(from_address, to_address, function, *args, time=0, amount=0):
     encoded_input = encode_input(function, *args)
     subprocess.check_output(
         [evm_exec, '--datadir', evm_data_dir, '--to', to_address,
          '--input', encoded_input, '--from', from_address,
          '--time', str(time), '--value', str(amount)],
         stderr=devnull_file)
+
+
+def perform_transaction(address, txn_plan):
+    args = generate_params(txn_plan['values'])
+    caller = get_value(txn_plan['caller'])
+    function = txn_plan['function']
+    block_timestamp = txn_plan.get('time', 0)
+    amount = txn_plan.get('amount', 0)
+    perform_transaction_(caller, address, function,
+                         *args, time=block_timestamp, amount=amount)
 
 
 def deploy_etheremon_database_contract():

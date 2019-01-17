@@ -19,11 +19,7 @@ from benchmark_plans import contracts_benchmark_plans, SENDER_ADDRESS
 
 def setup_test(setup_plans, contract_address):
     for setup_plan in setup_plans:
-        args = generate_params(setup_plan['values'])
-        caller = get_value(setup_plan['caller'])
-        function = setup_plan['function']
-        start = time.time()
-        perform_transaction(caller, contract_address, function, *args)
+        perform_transaction(contract_address, setup_plan)
 
 
 def run_tests(address, tests):
@@ -36,29 +32,34 @@ def run_tests(address, tests):
             setup_test(setup_plans, address)
             print('Finished setting up `{}`.'.format(test_name))
 
-        iterations = len(test_plan['transactions'])
+        all_transactions = test_plan['transactions']
+        matching_txns = filter(
+            lambda tx: tx['function'].name == test_name, all_transactions)
+        iterations = len(list(matching_txns))
         print('Running {} iterations of `{}` function'.format(
             iterations, test_name))
 
         execution_times = []
+        iteration_counter = 0
 
-        for iteration in range(iterations):
-            txn_plan = test_plan['transactions'][iteration]
-            if iteration % 10 == 0:
-                print('Ran {} iterations'.format(iteration))
-            args = generate_params(txn_plan['values'])
-            caller = get_value(txn_plan['caller'])
-            function = txn_plan['function']
-            block_timestamp = txn_plan.get('time', 0)
-            amount = txn_plan.get('amount', 0)
+        for txn_plan in all_transactions:
+            is_matching_test = txn_plan['function'].name == test_name
+            if is_matching_test:
+                iteration_counter += 1
+                if iteration_counter % 10 == 0:
+                    print('Ran {} iterations'.format(iteration_counter))
+
             start = time.time()
-            perform_transaction(caller, address, function,
-                                *args, time=block_timestamp, amount=amount)
+            perform_transaction(address, txn_plan)
             end = time.time()
-            execution_times.append(end-start)
+
+            # there may be some transactions interleaved
+            # so we only count the ones with the matching function name
+            if is_matching_test:
+                execution_times.append(end-start)
 
         print('Ran {} iterations of {} function'.format(
-            iterations, function.name))
+            iterations, test_plan['test_name']))
         print('New database size: {:,} bytes'.format(measure_evm_data_size()))
         print('Median execution time: {0:.6f} seconds'.format(
             median(execution_times)))
@@ -74,9 +75,7 @@ def populate_evm_state(address, transactions):
     for index, txn_plan in enumerate(transactions):
         if index % 10 == 0:
             print('Executed {} transactions'.format(index))
-        caller = get_value(txn_plan['caller'])
-        args = generate_params(txn_plan['values'])
-        perform_transaction(caller, address, txn_plan['function'], *args)
+        perform_transaction(address, txn_plan)
 
 
 def run_benchmark(contract_plan):
