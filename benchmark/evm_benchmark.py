@@ -14,7 +14,7 @@ from statistics import median, mean
 from evm_tools import measure_evm_data_size, measure_gas_cost, solc_compile_contract,\
     get_value, generate_params, deploy_contract, perform_transaction, evm_data_dir,\
     contracts_dir
-from benchmark_plans import contracts_benchmark_plans, SENDER_ADDRESS
+from benchmark_plans import contracts_benchmark_plans, SENDER_ADDRESS, get_token_address
 
 
 def setup_test(setup_plans, contract_address):
@@ -29,7 +29,10 @@ def run_tests(address, tests):
         setup_plans = test_plan.get('setup_transactions')
         if setup_plans:
             print('Setting up `{}`...'.format(test_name))
-            setup_test(setup_plans, address)
+            if callable(setup_plans):
+                setup_plans()
+            else:
+                setup_test(setup_plans, address)
             print('Finished setting up `{}`.'.format(test_name))
 
         all_transactions = test_plan['transactions']
@@ -49,21 +52,20 @@ def run_tests(address, tests):
                 if iteration_counter % 10 == 0:
                     print('Ran {} iterations'.format(iteration_counter))
 
-            start = time.time()
-            perform_transaction(address, txn_plan)
-            end = time.time()
+            time_taken = perform_transaction(address, txn_plan)
+            print('Time:', time_taken)
 
             # there may be some transactions interleaved
             # so we only count the ones with the matching function name
             if is_matching_test:
-                execution_times.append(end-start)
+                execution_times.append(time_taken)
 
         print('Ran {} iterations of {} function'.format(
             iterations, test_plan['test_name']))
         print('New database size: {:,} bytes'.format(measure_evm_data_size()))
-        print('Median execution time: {0:.6f} seconds'.format(
+        print('Median execution time: {0:.6f} ms'.format(
             median(execution_times)))
-        print('Mean execution time: {0:.6f} seconds'.format(
+        print('Mean execution time: {0:.6f} ms'.format(
             mean(execution_times)))
         print()
 
@@ -79,6 +81,14 @@ def populate_evm_state(address, transactions):
 
 
 def run_benchmark(contract_plan):
+    # clear the EVM data directory
+    if os.path.isdir(evm_data_dir):
+        shutil.rmtree(evm_data_dir)
+
+    before_deploy_function = contract_plan.get('before_deploy')
+    if before_deploy_function:
+        before_deploy_function()
+
     contract_path = os.path.join(
         contracts_dir, contract_plan['contract_filename'])
     bytecode = solc_compile_contract(
@@ -87,20 +97,24 @@ def run_benchmark(contract_plan):
     print('Contract deployed at:', address)
     print('Contract bytecode size: {:,} bytes'.format(
         len(bytecode.encode('utf-8'))))
+    print('Initial EVM database size: {:,} bytes'.format(
+        measure_evm_data_size()))
+
+    after_deploy_function = contract_plan.get('after_deploy')
+    if after_deploy_function:
+        print('Running after_deploy function')
+        after_deploy_function(address)
 
     populate_evm_state(address, contract_plan['transactions'])
-
-    print('\nInitial EVM database size: {:,} bytes\n'.format(
+    print('\nPopulated EVM database size: {:,} bytes\n'.format(
         measure_evm_data_size()))
+
     run_tests(address, contract_plan['tests'])
     print('Final EVM database size: {:,} bytes'.format(
         measure_evm_data_size()))
 
 
 def main():
-    # clear the EVM data directory
-    if os.path.isdir(evm_data_dir):
-        shutil.rmtree(evm_data_dir)
     for plan in contracts_benchmark_plans:
         run_benchmark(plan)
 

@@ -80,11 +80,11 @@ class ContractFunction():
 addresses = get_addresses()
 
 
-def get_random_address():
+def get_random_address(address):
     return random.choice(addresses)
 
 
-def get_random_number():
+def get_random_number(address):
     return random.randint(1, 100000)
 
 
@@ -106,7 +106,7 @@ def generate_random_params(arg_types):
     return values
 
 
-def get_random_token_id():
+def get_random_token_id(address):
     return random.randint(1, 20000)
 
 
