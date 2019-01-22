@@ -53,7 +53,6 @@ def run_tests(address, tests):
                     print('Ran {} iterations'.format(iteration_counter))
 
             time_taken = perform_transaction(address, txn_plan)
-            print('Time:', time_taken)
 
             # there may be some transactions interleaved
             # so we only count the ones with the matching function name

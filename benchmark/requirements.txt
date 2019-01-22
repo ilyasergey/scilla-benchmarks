@@ -11,5 +11,6 @@ pycurl==7.43.0
 pygobject==3.20.0
 pysha3==1.0.2
 python-apt==1.1.0b1+ubuntu0.16.4.2
+rlp==0.4.4
 six==1.12.0
 toolz==0.9.0
