@@ -117,3 +117,4 @@ dmypy.json
 *.swp
 benchmark/output
 evm-data
+evm-tools

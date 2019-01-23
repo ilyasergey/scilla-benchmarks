@@ -168,8 +168,6 @@ contract ERC721 is ERC165, IERC721 {
         for (uint i=0; i<noOfTokens; i++) {
             _tokenOwner[i] = msg.sender;
         }
-
-        _ownedTokensCount[msg.sender] = noOfTokens;
     }
 
     /**

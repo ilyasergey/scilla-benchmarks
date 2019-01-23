@@ -15,6 +15,7 @@ import json
 import random
 
 SENDER_ADDRESS = '0xfaB8FcF1b5fF9547821B4506Fa0C35c68a555F90'
+BASE_ADDRESS = '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE'
 SENDER_PRIVKEY = '4bc95d997c4c700bb4769678fa8452c2f67c9348e33f6f32b824253ae29a5316'
 
 
@@ -94,12 +95,12 @@ def normalize_address(x, allow_blank=False):
 
 
 def generate_contract_address(sender, nonce):
-    return keccak256(rlp.encode([normalize_address(sender), nonce]))[24:]
+    return '0x'+keccak256(rlp.encode([normalize_address(sender), nonce]))[24:]
 
 
 def get_addresses(no_of_addresses):
     address = [generate_contract_address(
-        SENDER_ADDRESS, nonce) for nonce in range(no_of_addresses)]
+        BASE_ADDRESS, nonce) for nonce in range(no_of_addresses)]
     return address
 
 

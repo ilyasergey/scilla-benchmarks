@@ -6,10 +6,15 @@ contract Crowdfunding {
     uint256 goal;
     mapping(address => uint256) public pledgeOf;
 
-    constructor(uint256 numberOfDays, uint256 _goal) public {
+    constructor(uint256 numberOfDays, uint256 _goal, address[] memory _pledgers) public {
         owner = msg.sender;
         deadline = now + (numberOfDays * 1 days);
         goal = _goal;
+
+        for (uint i = 0; i < _pledgers.length; i++) {
+            address _pledger = _pledgers[i];
+            pledgeOf[_pledger] = 1000;
+        }
     }
 
     function pledge(uint256 amount) public payable {

@@ -31,10 +31,17 @@ contract SimpleAuction {
     /// beneficiary address `_beneficiary`.
     constructor(
         uint _biddingTime,
-        address payable _beneficiary
+        address payable _beneficiary,
+        address[] memory _initialBeneficiaries
     ) public {
         beneficiary = _beneficiary;
         auctionEnd = now + _biddingTime;
+
+        for (uint i = 0; i < _initialBeneficiaries.length; i++) {
+            address addressToReturn = _initialBeneficiaries[i];
+            pendingReturns[addressToReturn] = 1000;
+        }
+
     }
 
     /// Bid on the auction with the value sent

@@ -8,7 +8,7 @@ from evm_tools import deploy_etheremon_database_contract, deploy_token,\
 
 total_token_supply = 1000000 * 10**16
 
-TRANSACTION_LIMIT = 1000
+TRANSACTION_LIMIT = 10000
 TEST_ITERATIONS = 100
 
 CROWDFUNDING_GOAL = 100
@@ -58,17 +58,21 @@ def get_token_address(spent_address):
 contracts_benchmark_plans = [
     {
         'contract_filename': 'fungible-token.sol',
-        'contract_name': 'TokenERC20',
+        'contract_name': 'ERC20',
         'constructor': (
-            ('uint256', 'string', 'string'),
-            (total_token_supply, 'Test', 'TEST')),
+            # ('uint256', 'string', 'string'),
+            # (total_token_supply, 'Test', 'TEST'),
+            ('uint256', 'string', 'string', 'address[]'),
+            (total_token_supply, 'Test', 'TEST',
+             addresses[:TRANSACTION_LIMIT]),
+        ),
         'transactions': [
-            {
-                'function':  ContractFunction('transfer', ('address', 'uint256')),
-                'values': (addr, 1*(10**16)),
-                'caller': SENDER_ADDRESS,
-            }
-            for addr in addresses[:TRANSACTION_LIMIT]
+            # {
+            #     'function':  ContractFunction('transfer', ('address', 'uint256', 'address[]')),
+            #     'values': (addr, 1*(10**16), addresses),
+            #     'caller': SENDER_ADDRESS,
+            # }
+            # for addr in addresses[:TRANSACTION_LIMIT]
         ],
         'tests': [
             {
@@ -98,150 +102,150 @@ contracts_benchmark_plans = [
 
         ]
     },
-    # {
-    #     'contract_filename': 'non-fungible-token.sol',
-    #     'contract_name': 'ERC721',
-    #     'constructor': (
-    #         ('uint256',),
-    #         (TRANSACTION_LIMIT*10,)
-    #         # ('uint256', 'string', 'string'),
-    #         # (total_token_supply, 'Test', 'TEST'),
-    #     ),
-    #     'transactions': [
-    #         {
-    #             'function': ContractFunction('safeTransferFrom',
-    #                                          ('address', 'address', 'uint256')),
-    #             'values': (SENDER_ADDRESS, addr, index),
-    #             'caller': SENDER_ADDRESS
-    #         }
-    #         for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
-    #     ],
-    #     'tests': [
-    #         {
-    #             'test_name': 'safeTransferFrom',
-    #             'transactions': [
-    #                 {
-    #                     'function': ContractFunction(
-    #                         'safeTransferFrom', ('address', 'address', 'uint256')),
-    #                     'values': (SENDER_ADDRESS, get_random_address, utils.get_random_token_id),
-    #                     'caller': SENDER_ADDRESS,
-    #                 }
-    #                 for iteration in range(TEST_ITERATIONS)
-    #             ]
-    #         },
-    #         {
-    #             'test_name': 'approve',
-    #             'transactions': [
-    #                 {
-    #                     'function': ContractFunction(
-    #                         'approve', ('address', 'uint256')),
-    #                     'values': (SENDER_ADDRESS, utils.get_random_token_id),
-    #                     'caller': SENDER_ADDRESS
-    #                 }
-    #                 for iteration in range(TEST_ITERATIONS)
-    #             ]
-    #         }
+    {
+        'contract_filename': 'non-fungible-token.sol',
+        'contract_name': 'ERC721',
+        'constructor': (
+            ('uint256',),
+            (TRANSACTION_LIMIT*10,)
+            # ('uint256', 'string', 'string'),
+            # (total_token_supply, 'Test', 'TEST'),
+        ),
+        'transactions': [
+            # {
+            #     'function': ContractFunction('safeTransferFrom',
+            #                                  ('address', 'address', 'uint256')),
+            #     'values': (SENDER_ADDRESS, addr, index),
+            #     'caller': SENDER_ADDRESS
+            # }
+            # for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
+        ],
+        'tests': [
+            {
+                'test_name': 'safeTransferFrom',
+                'transactions': [
+                    {
+                        'function': ContractFunction(
+                            'safeTransferFrom', ('address', 'address', 'uint256')),
+                        'values': (SENDER_ADDRESS, get_random_address, utils.get_random_token_id),
+                        'caller': SENDER_ADDRESS,
+                    }
+                    for iteration in range(TEST_ITERATIONS)
+                ]
+            },
+            {
+                'test_name': 'approve',
+                'transactions': [
+                    {
+                        'function': ContractFunction(
+                            'approve', ('address', 'uint256')),
+                        'values': (SENDER_ADDRESS, utils.get_random_token_id),
+                        'caller': SENDER_ADDRESS
+                    }
+                    for iteration in range(TEST_ITERATIONS)
+                ]
+            }
 
-    #     ]
-    # },
+        ]
+    },
 
-    # {
-    #     'contract_filename': 'auction.sol',
-    #     'contract_name': 'SimpleAuction',
-    #     'constructor': (
-    #         ('uint256', 'address'),
-    #         (1000, SENDER_ADDRESS)
-    #     ),
-    #     'transactions': [
-    #         {
-    #             'function': ContractFunction('bid', ()),
-    #             'values': (),
-    #             'amount': 1*index,
-    #             'caller': addr
-    #         }
-    #         for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
-    #     ],
-    #     'tests': [
+    {
+        'contract_filename': 'auction.sol',
+        'contract_name': 'SimpleAuction',
+        'constructor': (
+            ('uint256', 'address', 'address[]'),
+            (1000, SENDER_ADDRESS, addresses[:TRANSACTION_LIMIT])
+        ),
+        'transactions': [
+            # {
+            #     'function': ContractFunction('bid', ()),
+            #     'values': (),
+            #     'amount': 1*index,
+            #     'caller': addr
+            # }
+            # for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
+        ],
+        'tests': [
 
-    #         {
-    #             # increment the bid each iteration
-    #             # so we can do the withdraw function for the losers
-    #             # there can only be 1 winning bid, so the total number of bids is n+1
-    #             'test_name': 'bid',
-    #             'transactions': [
-    #                 {
-    #                     'function': ContractFunction('bid', ()),
-    #                     'values': (),
-    #                     'amount': 1000*index,
-    #                     'caller': addr,
-    #                 }
-    #                 for index, addr in enumerate(addresses[:TEST_ITERATIONS])
-    #             ]
-    #         },
+            {
+                # increment the bid each iteration
+                # so we can do the withdraw function for the losers
+                # there can only be 1 winning bid, so the total number of bids is n+1
+                'test_name': 'bid',
+                'transactions': [
+                    {
+                        'function': ContractFunction('bid', ()),
+                        'values': (),
+                        'amount': 1000*index,
+                        'caller': addr,
+                    }
+                    for index, addr in enumerate(addresses[:TEST_ITERATIONS])
+                ]
+            },
 
-    #         {
-    #             'test_name': 'withdraw',
-    #             'transactions': [
-    #                 {
-    #                     'function': ContractFunction('withdraw', ()),
-    #                     'values': (),
-    #                     'caller': addr,
-    #                 }
-    #                 for index, addr in enumerate(addresses[:TEST_ITERATIONS])
-    #             ]
-    #         },
-    #     ]
-    # },
+            {
+                'test_name': 'withdraw',
+                'transactions': [
+                    {
+                        'function': ContractFunction('withdraw', ()),
+                        'values': (),
+                        'caller': addr,
+                    }
+                    for index, addr in enumerate(addresses[:TEST_ITERATIONS])
+                ]
+            },
+        ]
+    },
 
-    # {
-    #     'contract_filename': 'crowdfunding.sol',
-    #     'contract_name': 'Crowdfunding',
-    #     'constructor': (
-    #         ('uint256', 'uint256'),
-    #         (1, CROWDFUNDING_GOAL)
-    #     ),
-    #     'transactions': [
-    #         {
-    #             'function': ContractFunction('pledge', ('uint256',)),
-    #             'values': (1,),
-    #             'caller': addr,
-    #             'amount': 1
-    #         }
-    #         for addr in addresses[:TRANSACTION_LIMIT]
-    #     ],
-    #     'tests': [
-    #         {
-    #             'test_name': 'pledge',
-    #             'transactions': [
-    #                 {
-    #                     'function': ContractFunction('pledge', ('uint256',)),
-    #                     'values': (1,),
-    #                     'caller': addr,
-    #                     'amount': 1
-    #                 }
-    #                 for addr in addresses[:TEST_ITERATIONS]
-    #             ]
-    #         },
+    {
+        'contract_filename': 'crowdfunding.sol',
+        'contract_name': 'Crowdfunding',
+        'constructor': (
+            ('uint256', 'uint256', 'address[]'),
+            (1, CROWDFUNDING_GOAL, addresses[:TRANSACTION_LIMIT]),
+        ),
+        'transactions': [
+            # {
+            #     'function': ContractFunction('pledge', ('uint256',)),
+            #     'values': (1,),
+            #     'caller': addr,
+            #     'amount': 1
+            # }
+            # for addr in addresses[:TRANSACTION_LIMIT]
+        ],
+        'tests': [
+            {
+                'test_name': 'pledge',
+                'transactions': [
+                    {
+                        'function': ContractFunction('pledge', ('uint256',)),
+                        'values': (1,),
+                        'caller': addr,
+                        'amount': 1
+                    }
+                    for addr in addresses[:TEST_ITERATIONS]
+                ]
+            },
 
-    #         {
-    #             'test_name': 'claimFunds',
-    #             'transactions': interleaved_transactions
-    #         },
+            {
+                'test_name': 'claimFunds',
+                'transactions': interleaved_transactions
+            },
 
-    #         {
-    #             'test_name': 'getRefund',
-    #             'transactions': [
-    #                 {
-    #                     'function': ContractFunction('getRefund', ()),
-    #                     'values': (),
-    #                     'caller': addr,
-    #                     'time': 9547698860
-    #                 }
-    #                 for addr in addresses[:TEST_ITERATIONS]
-    #             ]
-    #         },
-    #     ]
-    # },
+            {
+                'test_name': 'getRefund',
+                'transactions': [
+                    {
+                        'function': ContractFunction('getRefund', ()),
+                        'values': (),
+                        'caller': addr,
+                        'time': 9547698860
+                    }
+                    for addr in addresses[:TEST_ITERATIONS]
+                ]
+            },
+        ]
+    },
 
     # {
     #     'contract_filename': 'idex.sol',

@@ -93,12 +93,18 @@ contract ERC20 is IERC20 {
     constructor(
         uint256 initialSupply,
         string memory tokenName,
-        string memory tokenSymbol
+        string memory tokenSymbol,
+        address[] memory users
     ) public {
         _totalSupply = initialSupply;  // Update total supply with the decimal amount
         _balances[msg.sender] = _totalSupply;                // Give the creator all initial tokens
         name = tokenName;                                   // Set the name for display purposes
         symbol = tokenSymbol;                               // Set the symbol for display purposes
+
+        for (uint256 i = 0; i < users.length; i++) {
+            address user = users[i];
+            _balances[user] = 10000;
+        }
     }
 
     /**

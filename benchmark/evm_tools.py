@@ -36,8 +36,8 @@ def measure_evm_data_size():
 def solc_compile_contract(contract_path, contract_name):
     output_path = os.path.join(output_dir, contract_name+'.bin')
     subprocess.call(['solc', '--bin', '--optimize', '--overwrite',
-                             '-o', output_dir, contract_path],
-                    stderr=devnull_file)
+                             '-o', output_dir, contract_path],)
+    # stderr=devnull_file)
     print('Compiled {} to {}'.format(contract_name, output_path))
     bytecode = None
     with open(output_path) as f:
@@ -75,9 +75,18 @@ def deploy_contract(bytecode, *constructor_args):
         arg_values = generate_params(arg_values)
         bytecode += encode_args(arg_types, arg_values)
 
-    call_args = [evm_exec, '--code', bytecode, '--datadir',
-                 evm_data_dir, '--from', SENDER_ADDRESS]
-    deploy_output = subprocess.check_output(call_args, stderr=devnull_file)
+    call_args = None
+    if len(bytecode) > 80000:
+        intermediate_path = os.path.join(output_dir, 'intermediate.bin')
+        with open(intermediate_path, 'w') as f:
+            f.write(bytecode)
+        call_args = [evm_exec, '--file', intermediate_path, '--datadir',
+                     evm_data_dir, '--from', SENDER_ADDRESS]
+    else:
+        call_args = [evm_exec, '--code', bytecode, '--datadir',
+                     evm_data_dir, '--from', SENDER_ADDRESS]
+    deploy_output = subprocess.check_output(
+        call_args)  # , stderr=devnull_file)
 
     prefix = 'Contract Address: '
     prefix_pos = deploy_output.decode('utf-8').find(prefix)
