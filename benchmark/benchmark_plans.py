@@ -149,103 +149,103 @@ contracts_benchmark_plans = [
     #     ]
     # },
 
-    {
-        'contract_filename': 'auction.sol',
-        'contract_name': 'SimpleAuction',
-        'constructor': (
-            ('uint256', 'address', 'address[]'),
-            (1000, SENDER_ADDRESS, addresses[:TRANSACTION_LIMIT])
-        ),
-        'transactions': [
-            # {
-            #     'function': ContractFunction('bid', ()),
-            #     'values': (),
-            #     'amount': 1*index,
-            #     'caller': addr
-            # }
-            # for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
-        ],
-        'tests': [
-
-            {
-                # increment the bid each iteration
-                # so we can do the withdraw function for the losers
-                # there can only be 1 winning bid, so the total number of bids is n+1
-                'test_name': 'bid',
-                'transactions': [
-                    {
-                        'function': ContractFunction('bid', ()),
-                        'values': (),
-                        'amount': 1000*index,
-                        'caller': addr,
-                    }
-                    for index, addr in enumerate(addresses[:TEST_ITERATIONS])
-                ]
-            },
-
-            {
-                'test_name': 'withdraw',
-                'transactions': [
-                    {
-                        'function': ContractFunction('withdraw', ()),
-                        'values': (),
-                        'caller': addr,
-                    }
-                    for index, addr in enumerate(addresses[:TEST_ITERATIONS])
-                ]
-            },
-        ]
-    },
-
     # {
-    #     'contract_filename': 'crowdfunding.sol',
-    #     'contract_name': 'Crowdfunding',
+    #     'contract_filename': 'auction.sol',
+    #     'contract_name': 'SimpleAuction',
     #     'constructor': (
-    #         ('uint256', 'uint256', 'address[]'),
-    #         (1, CROWDFUNDING_GOAL, addresses[:TRANSACTION_LIMIT]),
+    #         ('uint256', 'address', 'address[]'),
+    #         (1000, SENDER_ADDRESS, addresses[:TRANSACTION_LIMIT])
     #     ),
     #     'transactions': [
     #         # {
-    #         #     'function': ContractFunction('pledge', ('uint256',)),
-    #         #     'values': (1,),
-    #         #     'caller': addr,
-    #         #     'amount': 1
+    #         #     'function': ContractFunction('bid', ()),
+    #         #     'values': (),
+    #         #     'amount': 1*index,
+    #         #     'caller': addr
     #         # }
-    #         # for addr in addresses[:TRANSACTION_LIMIT]
+    #         # for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
     #     ],
     #     'tests': [
+
     #         {
-    #             'test_name': 'pledge',
+    #             # increment the bid each iteration
+    #             # so we can do the withdraw function for the losers
+    #             # there can only be 1 winning bid, so the total number of bids is n+1
+    #             'test_name': 'bid',
     #             'transactions': [
     #                 {
-    #                     'function': ContractFunction('pledge', ('uint256',)),
-    #                     'values': (1,),
+    #                     'function': ContractFunction('bid', ()),
+    #                     'values': (),
+    #                     'amount': 1000*index,
     #                     'caller': addr,
-    #                     'amount': 1
     #                 }
-    #                 for addr in addresses[:TEST_ITERATIONS]
+    #                 for index, addr in enumerate(addresses[:TEST_ITERATIONS])
     #             ]
     #         },
 
     #         {
-    #             'test_name': 'claimFunds',
-    #             'transactions': interleaved_transactions
-    #         },
-
-    #         {
-    #             'test_name': 'getRefund',
+    #             'test_name': 'withdraw',
     #             'transactions': [
     #                 {
-    #                     'function': ContractFunction('getRefund', ()),
+    #                     'function': ContractFunction('withdraw', ()),
     #                     'values': (),
     #                     'caller': addr,
-    #                     'time': 9547698860
     #                 }
-    #                 for addr in addresses[:TEST_ITERATIONS]
+    #                 for index, addr in enumerate(addresses[:TEST_ITERATIONS])
     #             ]
     #         },
     #     ]
     # },
+
+    {
+        'contract_filename': 'crowdfunding.sol',
+        'contract_name': 'Crowdfunding',
+        'constructor': (
+            ('uint256', 'uint256', 'address[]'),
+            (1, CROWDFUNDING_GOAL, addresses[:TRANSACTION_LIMIT]),
+        ),
+        'transactions': [
+            # {
+            #     'function': ContractFunction('pledge', ('uint256',)),
+            #     'values': (1,),
+            #     'caller': addr,
+            #     'amount': 1
+            # }
+            # for addr in addresses[:TRANSACTION_LIMIT]
+        ],
+        'tests': [
+            # {
+            #     'test_name': 'pledge',
+            #     'transactions': [
+            #         {
+            #             'function': ContractFunction('pledge', ('uint256',)),
+            #             'values': (1,),
+            #             'caller': addr,
+            #             'amount': 1
+            #         }
+            #         for addr in addresses[:TEST_ITERATIONS]
+            #     ]
+            # },
+
+            {
+                'test_name': 'claimFunds',
+                'transactions': interleaved_transactions
+            },
+
+            {
+                'test_name': 'getRefund',
+                'transactions': [
+                    {
+                        'function': ContractFunction('getRefund', ()),
+                        'values': (),
+                        'caller': addr,
+                        'time': 9547698860
+                    }
+                    for addr in addresses[:TEST_ITERATIONS]
+                ]
+            },
+        ]
+    },
 
     # {
     #     'contract_filename': 'idex.sol',

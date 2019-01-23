@@ -45,26 +45,31 @@ def run_tests(bytecode, contract_plan):
         print('Running {} iterations of `{}` function'.format(
             iterations, test_name))
 
-        execution_times = []
-        iteration_counter = 0
-
-        for txn_plan in all_transactions:
+        def reset_contract():
             if os.path.isdir(evm_data_dir):
                 shutil.rmtree(evm_data_dir)
 
             address = deploy_contract(bytecode, *contract_plan['constructor'])
+            return address
 
-            # only print once:
-            if iteration_counter == 0:
-                print('Contract deployed at:', address)
-                print('Contract bytecode size: {:,} bytes'.format(
-                    len(bytecode.encode('utf-8'))))
-                print('Total gas cost:', measure_gas_cost(bytecode))
-                print('Initial EVM database size: {:,} bytes'.format(
-                    calculate_all_db_key_value_sizes()))
+        execution_times = []
+        iteration_counter = 0
+        address = reset_contract()
 
+        for txn_plan in all_transactions:
             is_matching_test = txn_plan['function'].name == test_name
+
             if is_matching_test:
+                address = reset_contract()
+                # only print once:
+                if iteration_counter == 0:
+                    print('Contract deployed at:', address)
+                    print('Contract bytecode size: {:,} bytes'.format(
+                        len(bytecode.encode('utf-8'))))
+                    print('Total gas cost:', measure_gas_cost(bytecode))
+                    print('Initial EVM database size: {:,} bytes'.format(
+                        calculate_all_db_key_value_sizes()))
+
                 iteration_counter += 1
                 if iteration_counter % 10 == 0:
                     print('Ran {} iterations'.format(iteration_counter))
