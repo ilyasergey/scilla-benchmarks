@@ -5,6 +5,7 @@ import subprocess
 from eth_abi import encode_abi
 from utils import keccak256, generate_address,\
     get_addresses, get_directory_size
+from db import calculate_all_db_key_value_sizes
 import uuid
 import random
 import shutil
@@ -61,7 +62,9 @@ def run_tests(address, tests):
 
         print('Ran {} iterations of {} function'.format(
             iterations, test_plan['test_name']))
-        print('New database size: {:,} bytes'.format(measure_evm_data_size()))
+        # print('New database size: {:,} bytes'.format(measure_evm_data_size()))
+        print('New database size: {:,} bytes'.format(
+            calculate_all_db_key_value_sizes()))
         print('Median execution time: {0:.6f} ms'.format(
             median(execution_times)))
         print('Mean execution time: {0:.6f} ms'.format(
@@ -97,7 +100,7 @@ def run_benchmark(contract_plan):
     print('Contract bytecode size: {:,} bytes'.format(
         len(bytecode.encode('utf-8'))))
     print('Initial EVM database size: {:,} bytes'.format(
-        measure_evm_data_size()))
+        calculate_all_db_key_value_sizes()))
 
     after_deploy_function = contract_plan.get('after_deploy')
     if after_deploy_function:
@@ -106,11 +109,11 @@ def run_benchmark(contract_plan):
 
     populate_evm_state(address, contract_plan['transactions'])
     print('\nPopulated EVM database size: {:,} bytes\n'.format(
-        measure_evm_data_size()))
+        calculate_all_db_key_value_sizes()))
 
     run_tests(address, contract_plan['tests'])
     print('Final EVM database size: {:,} bytes'.format(
-        measure_evm_data_size()))
+        calculate_all_db_key_value_sizes()))
 
 
 def main():

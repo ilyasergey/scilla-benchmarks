@@ -8,7 +8,7 @@ from evm_tools import deploy_etheremon_database_contract, deploy_token,\
 
 total_token_supply = 1000000 * 10**16
 
-TRANSACTION_LIMIT = 100
+TRANSACTION_LIMIT = 1000
 TEST_ITERATIONS = 100
 
 CROWDFUNDING_GOAL = 100

@@ -123,7 +123,7 @@ class ContractFunction():
         return signature
 
 
-addresses = get_addresses(100000)
+addresses = get_addresses(10000)
 
 
 def get_random_address(address):

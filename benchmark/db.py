@@ -3,17 +3,28 @@ import plyvel
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 db_dir = os.path.join(current_dir, 'evm-data', 'evm')
-db = plyvel.DB(db_dir)
 
 
-# def measure_item_size(db, key):
-#     db.get(key)
+def calculate_all_db_key_value_sizes():
+    db = plyvel.DB(db_dir)
+    snapshot = db.snapshot()
+    key_sizes = 0
+    value_sizes = 0
+    key_count = 0
+
+    with snapshot.iterator() as it:
+        for key, value in it:
+            key_count += 1
+            key_sizes += len(key)
+            value_sizes += len(value)
+    print('key count:', key_count)
+    return key_sizes + value_sizes
 
 
 def main():
-
-    for key, value in db:
-        print(key, value)
+    print('Key sizes:', sum(key_sizes))
+    print('Value sizes:', sum(value_sizes))
+    print('Key & value sizes:', sum(key_sizes)+sum(value_sizes))
 
 
 if __name__ == '__main__':
