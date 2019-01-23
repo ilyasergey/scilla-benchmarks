@@ -310,48 +310,6 @@ contract ERC721 is ERC165, IERC721 {
         return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
     }
 
-    /**
-     * @dev Internal function to mint a new token
-     * Reverts if the given token ID already exists
-     * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
-     */
-    function _mint(address to, uint256 tokenId) internal {
-        require(to != address(0));
-        require(!_exists(tokenId));
-
-        _tokenOwner[tokenId] = to;
-        _ownedTokensCount[to] = _ownedTokensCount[to].add(1);
-
-        emit Transfer(address(0), to, tokenId);
-    }
-
-    /**
-     * @dev Internal function to burn a specific token
-     * Reverts if the token does not exist
-     * Deprecated, use _burn(uint256) instead.
-     * @param owner owner of the token to burn
-     * @param tokenId uint256 ID of the token being burned
-     */
-    function _burn(address owner, uint256 tokenId) internal {
-        require(ownerOf(tokenId) == owner);
-
-        _clearApproval(tokenId);
-
-        _ownedTokensCount[owner] = _ownedTokensCount[owner].sub(1);
-        _tokenOwner[tokenId] = address(0);
-
-        emit Transfer(owner, address(0), tokenId);
-    }
-
-    /**
-     * @dev Internal function to burn a specific token
-     * Reverts if the token does not exist
-     * @param tokenId uint256 ID of the token being burned
-     */
-    function _burn(uint256 tokenId) internal {
-        _burn(ownerOf(tokenId), tokenId);
-    }
 
     /**
      * @dev Internal function to transfer ownership of a given token ID to another address.

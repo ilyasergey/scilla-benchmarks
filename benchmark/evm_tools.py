@@ -25,6 +25,7 @@ evm_data_dir = os.path.join(current_dir, 'evm-data')
 contracts_dir = os.path.join(current_dir, 'contracts')
 
 devnull_file = open(os.devnull, 'w')
+ROOT_HASH = '0000000000000000000000000000000000000000000000000000000000000000'
 
 
 def measure_evm_data_size():
@@ -67,9 +68,6 @@ def encode_args(types, values):
 
 
 def deploy_contract(bytecode, *constructor_args):
-    gas_cost = measure_gas_cost(bytecode)
-    print('Total gas cost:', gas_cost)
-
     if constructor_args:
         arg_types, arg_values = constructor_args
         arg_values = generate_params(arg_values)
@@ -86,7 +84,7 @@ def deploy_contract(bytecode, *constructor_args):
         call_args = [evm_exec, '--code', bytecode, '--datadir',
                      evm_data_dir, '--from', SENDER_ADDRESS]
     deploy_output = subprocess.check_output(
-        call_args)  # , stderr=devnull_file)
+        call_args, stderr=devnull_file)
 
     prefix = 'Contract Address: '
     prefix_pos = deploy_output.decode('utf-8').find(prefix)
@@ -102,11 +100,14 @@ def encode_input(function, *args):
     return function.get_signature() + hex_args
 
 
-def perform_transaction_(from_address, to_address, function, *args, time=0, amount=0):
+def perform_transaction_(from_address, to_address, function,
+                         *args, time=0, amount=0, root_hash=None):
     encoded_input = encode_input(function, *args)
     command = [evm_exec, '--datadir', evm_data_dir, '--to', to_address,
                '--input', encoded_input, '--from', from_address,
                '--time', str(time), '--value', str(amount), '--sysstat']
+    if root_hash:
+        command += ['--root', root_hash]
     output = subprocess.check_output(command, stderr=devnull_file)
     match = re.search(b'vm took (\d*\.?\d*)', output)
     time_taken = float(match[1])  # remove ms from match
@@ -122,15 +123,23 @@ def measure_gas_cost(bytecode):
     return sum(costs)
 
 
-def perform_transaction(address, txn_plan):
+def perform_transaction(address, txn_plan, root_hash=None):
     args = generate_params(txn_plan['values'], address=address)
     caller = get_value(txn_plan['caller'])
     function = txn_plan['function']
     block_timestamp = txn_plan.get('time', 0)
     amount = txn_plan.get('amount', 0)
     time_taken = perform_transaction_(caller, address, function,
-                                      *args, time=block_timestamp, amount=amount)
+                                      *args, time=block_timestamp,
+                                      amount=amount, root_hash=root_hash)
     return time_taken
+
+
+def get_current_root_hash():
+    command = [evm_exec, '--datadir', evm_data_dir]
+    output = subprocess.check_output(command, stderr=devnull_file)
+    match = re.search(b'Loading root hash (.*)', output)
+    return match[1]
 
 
 def deploy_contract_with_name(path, name, *args):

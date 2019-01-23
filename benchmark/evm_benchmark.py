@@ -14,7 +14,7 @@ from statistics import median, mean
 
 from evm_tools import measure_evm_data_size, measure_gas_cost, solc_compile_contract,\
     get_value, generate_params, deploy_contract, perform_transaction, evm_data_dir,\
-    contracts_dir
+    contracts_dir, get_current_root_hash
 from benchmark_plans import contracts_benchmark_plans, SENDER_ADDRESS, get_token_address
 
 
@@ -23,7 +23,9 @@ def setup_test(setup_plans, contract_address):
         perform_transaction(contract_address, setup_plan)
 
 
-def run_tests(address, tests):
+def run_tests(bytecode, contract_plan):
+    tests = contract_plan['tests']
+
     for test_plan in tests:
         test_name = test_plan['test_name']
 
@@ -47,13 +49,28 @@ def run_tests(address, tests):
         iteration_counter = 0
 
         for txn_plan in all_transactions:
+            if os.path.isdir(evm_data_dir):
+                shutil.rmtree(evm_data_dir)
+
+            address = deploy_contract(bytecode, *contract_plan['constructor'])
+
+            # only print once:
+            if iteration_counter == 0:
+                print('Contract deployed at:', address)
+                print('Contract bytecode size: {:,} bytes'.format(
+                    len(bytecode.encode('utf-8'))))
+                print('Total gas cost:', measure_gas_cost(bytecode))
+                print('Initial EVM database size: {:,} bytes'.format(
+                    calculate_all_db_key_value_sizes()))
+
             is_matching_test = txn_plan['function'].name == test_name
             if is_matching_test:
                 iteration_counter += 1
                 if iteration_counter % 10 == 0:
                     print('Ran {} iterations'.format(iteration_counter))
 
-            time_taken = perform_transaction(address, txn_plan)
+            time_taken = perform_transaction(
+                address, txn_plan)
 
             # there may be some transactions interleaved
             # so we only count the ones with the matching function name
@@ -95,23 +112,23 @@ def run_benchmark(contract_plan):
         contracts_dir, contract_plan['contract_filename'])
     bytecode = solc_compile_contract(
         contract_path, contract_plan['contract_name'])
-    address = deploy_contract(bytecode, *contract_plan['constructor'])
-    print('Contract deployed at:', address)
-    print('Contract bytecode size: {:,} bytes'.format(
-        len(bytecode.encode('utf-8'))))
-    print('Initial EVM database size: {:,} bytes'.format(
-        calculate_all_db_key_value_sizes()))
+    # address = deploy_contract(bytecode, *contract_plan['constructor'])
+    # print('Contract deployed at:', address)
+    # print('Contract bytecode size: {:,} bytes'.format(
+    #     len(bytecode.encode('utf-8'))))
+    # print('Initial EVM database size: {:,} bytes'.format(
+    #     calculate_all_db_key_value_sizes()))
 
-    after_deploy_function = contract_plan.get('after_deploy')
-    if after_deploy_function:
-        print('Running after_deploy function')
-        after_deploy_function(address)
+    # after_deploy_function = contract_plan.get('after_deploy')
+    # if after_deploy_function:
+    #     print('Running after_deploy function')
+    #     after_deploy_function(address)
 
-    populate_evm_state(address, contract_plan['transactions'])
-    print('\nPopulated EVM database size: {:,} bytes\n'.format(
-        calculate_all_db_key_value_sizes()))
+    # populate_evm_state(address, contract_plan['transactions'])
+    # print('\nPopulated EVM database size: {:,} bytes\n'.format(
+    #     calculate_all_db_key_value_sizes()))
 
-    run_tests(address, contract_plan['tests'])
+    run_tests(bytecode, contract_plan)
     print('Final EVM database size: {:,} bytes'.format(
         calculate_all_db_key_value_sizes()))
 
