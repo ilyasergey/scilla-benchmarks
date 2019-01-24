@@ -31,6 +31,12 @@ def sha3(seed):
     return sha3_256(to_string(seed))
 
 
+def keccak256(string):
+    keccak_hash = keccak.new(digest_bits=256)
+    keccak_hash.update(string)
+    return keccak_hash.hexdigest()
+
+
 def normalize_address(x, allow_blank=False):
     if allow_blank and x == '':
         return ''
@@ -50,7 +56,12 @@ def generate_contract_address(sender, nonce):
     return '0x'+keccak256(rlp.encode([normalize_address(sender), nonce]))[24:]
 
 
-addresses = get_addresses(100000)
+def get_addresses(no_of_addresses):
+    return [generate_contract_address(BASE_ADDRESS, i)
+            for i in range(no_of_addresses)]
+
+
+addresses = get_addresses(10000)
 
 
 if __name__ == '__main__':

@@ -10,7 +10,8 @@ RUN \
   add-apt-repository ppa:tah83/secp256k1 -y && \
   add-apt-repository -y ppa:avsm/ppa && \
   apt-get update && apt-get upgrade -q -y && \
-  apt-get install -y --no-install-recommends curl build-essential m4 ocaml opam pkg-config zlib1g-dev libgmp-dev libffi-dev libssl-dev libboost-system-dev libsecp256k1-dev libsqlite3-dev
+  apt-get install -y --no-install-recommends curl build-essential m4 ocaml opam pkg-config zlib1g-dev libgmp-dev libffi-dev libssl-dev libboost-system-dev libsecp256k1-dev libsqlite3-dev && \
+  rm -rf /var/lib/apt/lists/*
 
 
 RUN opam init -y --disable-sandboxing
@@ -36,7 +37,7 @@ RUN \
 
 WORKDIR /home/scilla
 
-RUN make clean && make
+# RUN make
 
 WORKDIR /code/
 ADD requirements.txt /code/
