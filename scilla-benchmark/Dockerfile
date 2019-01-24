@@ -33,7 +33,7 @@ RUN \
   curl https://bootstrap.pypa.io/get-pip.py | python3.6
 
 RUN \
-  git clone https://github.com/Zilliqa/scilla /home/scilla
+  git clone https://github.com/kenchangh/scilla /home/scilla
 
 WORKDIR /home/scilla
 

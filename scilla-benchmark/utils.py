@@ -61,7 +61,7 @@ def get_addresses(no_of_addresses):
             for i in range(no_of_addresses)]
 
 
-addresses = get_addresses(10000)
+addresses = get_addresses(30000)
 
 
 if __name__ == '__main__':

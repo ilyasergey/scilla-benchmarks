@@ -118,3 +118,6 @@ dmypy.json
 evm-benchmark/output
 evm-data
 evm-tools
+scilla-benchmark/output
+state.json
+message.json

@@ -1,1 +1,0 @@
-{"_tag": "Approve", "_amount": "0", "_sender": "0xfaB8FcF1b5fF9547821B4506Fa0C35c68a555F90", "params": [{"vname": "spender", "type": "ByStr20", "value": "0x0bd74bc3b20626f66ecb25a289424af87fbdf542"}, {"vname": "tokens", "type": "Uint128", "value": "1000"}]}

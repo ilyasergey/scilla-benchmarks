@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 import json
@@ -48,11 +49,11 @@ def run_test(contract_name, transaction):
 
     command = [scilla_runner_exec, '-init', init_json, '-istate', state_json,
                '-iblockchain', blockchain_json, '-imessage', message_json,
-               '-o', output_filepath, '-i', contract_path, '-libdir', 'src/stdlib']
-    print(command)
-    start = time.time()
-    subprocess.call(command)
-    time_taken = time.time() - start
+               '-o', output_filepath, '-i', contract_path, '-libdir', 'src/stdlib',
+               '-gaslimit', '10000']
+    output = subprocess.check_output(command)
+    match = re.search(b'time:(.*)', output)
+    time_taken = float(match[1]) * 1000
     return time_taken
 
 
@@ -70,6 +71,10 @@ def run_benchmark(no_of_state_entries, iterations=100):
             iterations = len(transactions)
             print('Running {} iterations of `{}` function'.format(
                 iterations, test_name))
+
+            if iterations == 0:
+                raise Exception(
+                    'Transactions is empty, addresses generated is not enough')
 
             for iteration, transaction in enumerate(transactions):
                 if iteration % 10 == 0:
