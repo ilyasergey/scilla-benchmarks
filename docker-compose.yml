@@ -1,8 +1,13 @@
 version: '3'
 
 services:
-  benchmark:
-    command: python3.6 /code/benchmark/while.py
-    build: benchmark
+  evm-benchmark:
+    command: python3.6 /code/evm-benchmark/while.py
+    build: evm-benchmark
+    volumes:
+      - .:/code
+  scilla-benchmark:
+    command: python3.6 /code/scilla-benchmark/while.py
+    build: scilla-benchmark
     volumes:
       - .:/code

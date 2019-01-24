@@ -115,6 +115,6 @@ dmypy.json
 .pyre/
 
 *.swp
-benchmark/output
+evm-benchmark/output
 evm-data
 evm-tools

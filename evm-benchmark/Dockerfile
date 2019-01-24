@@ -36,11 +36,11 @@ ENV GOBIN=/usr/lib/go-1.9
 
 RUN \
   curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh && \
-  mkdir -p $GOPATH/src/github.com/CoinCulture && \
-  git clone https://github.com/CoinCulture/evm-tools $GOPATH/src/github.com/CoinCulture/evm-tools
+  mkdir -p $GOPATH/src/github.com/kenchangh && \
+  git clone https://github.com/kenchangh/evm-tools $GOPATH/src/github.com/kenchangh/evm-tools
 
 
-WORKDIR $GOPATH/src/github.com/CoinCulture/evm-tools
+WORKDIR $GOPATH/src/github.com/kenchangh/evm-tools
 
 RUN $GOROOT/dep ensure && make
 
