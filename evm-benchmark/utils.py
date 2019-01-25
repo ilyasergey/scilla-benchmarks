@@ -124,7 +124,7 @@ class ContractFunction():
         return signature
 
 
-addresses = get_addresses(10000)
+addresses = get_addresses_from_file()
 
 
 def get_random_address(address):
