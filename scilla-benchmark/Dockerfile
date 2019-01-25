@@ -37,7 +37,7 @@ RUN \
 
 WORKDIR /home/scilla
 
-# RUN make
+RUN cd /home/scilla && make
 
 WORKDIR /code/
 ADD requirements.txt /code/

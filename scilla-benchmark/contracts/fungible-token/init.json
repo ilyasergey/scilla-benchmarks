@@ -12,12 +12,12 @@
     {
         "vname": "owner",
         "type": "ByStr20",
-        "value": "0xfaB8FcF1b5fF9547821B4506Fa0C35c68a555F90"
+        "value": "0x1234567890123456789012345678901234567890"
     },
     {
         "vname": "total_tokens",
         "type": "Uint128",
-        "value": "1000000"
+        "value": "10000"
     },
     {
         "vname": "_creation_block",

@@ -16,25 +16,31 @@ def get_benchmark_plans(state_entries, test_iterations):
                     "type": "Map (ByStr20) (Uint128)",
                     "value": [
                         {
+                            "key": SENDER_ADDRESS,
+                            "val": "1000000"
+                        }
+                    ]+[
+                        {
                             "key": addr,
                             "val": "1000"
                         }
                         for addr in addresses[:state_entries]
                     ]
-                }],
+                }
+            ],
             'tests': [
                 {
                     'test_name': 'Transfer',
                     'transactions': [
                         {
                             'transition': 'Transfer',
-                            'amount': 0,
+                            'amount': '0',
                             'sender': SENDER_ADDRESS,
                             'params': [
                                 {
                                     'vname': 'to',
                                     'type': 'ByStr20',
-                                    'value': addr
+                                    'value': '0x44345678901234567890123456789012345678cd'
                                 },
                                 {
                                     'vname': 'tokens',
