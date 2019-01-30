@@ -21,6 +21,7 @@ disasm_exec = os.path.join(GO_ROOT, 'disasm')
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 output_dir = os.path.join(current_dir, 'output')
+evm_start_data_dir = os.path.join(current_dir, 'evm-data-start')
 evm_data_dir = os.path.join(current_dir, 'evm-data')
 contracts_dir = os.path.join(current_dir, 'contracts')
 
@@ -63,28 +64,36 @@ def generate_params(value_functions, address=None):
 
 
 def encode_args(types, values):
-    hex_args = binascii.hexlify(encode_abi(types, values))
+    abi = encode_abi(types, values)
+    hex_args = binascii.hexlify(abi)
     return hex_args.decode('utf-8')
 
 
-def deploy_contract(bytecode, *constructor_args):
+def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
+    start = time.time()
     if constructor_args:
         arg_types, arg_values = constructor_args
         arg_values = generate_params(arg_values)
         bytecode += encode_args(arg_types, arg_values)
+    print('Encoding params', time.time()-start)
 
+    start = time.time()
     call_args = None
     if len(bytecode) > 80000:
         intermediate_path = os.path.join(output_dir, 'intermediate.bin')
         with open(intermediate_path, 'w') as f:
             f.write(bytecode)
         call_args = [evm_exec, '--file', intermediate_path, '--datadir',
-                     evm_data_dir, '--from', SENDER_ADDRESS]
+                     dirname, '--from', SENDER_ADDRESS]
     else:
         call_args = [evm_exec, '--code', bytecode, '--datadir',
-                     evm_data_dir, '--from', SENDER_ADDRESS]
+                     dirname, '--from', SENDER_ADDRESS]
+    print('Write bytecode to file', time.time()-start)
+
+    start = time.time()
     deploy_output = subprocess.check_output(
         call_args, stderr=devnull_file)
+    print('Deploy to EVM', time.time()-start)
 
     prefix = 'Contract Address: '
     prefix_pos = deploy_output.decode('utf-8').find(prefix)
@@ -109,7 +118,10 @@ def perform_transaction_(from_address, to_address, function,
     if root_hash:
         command += ['--root', root_hash]
     output = subprocess.check_output(command, stderr=devnull_file)
-    match = re.search(b'vm took (\d*\.?\d*)', output)
+    # import pdb
+    # pdb.set_trace()
+    # match = re.search(b'vm took (\d*\.?\d*)', output)
+    match = re.search(b'Non IO execution time: (.*)', output)
     time_taken = float(match[1])  # remove ms from match
     return time_taken
 

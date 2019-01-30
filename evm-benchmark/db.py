@@ -17,7 +17,7 @@ def calculate_all_db_key_value_sizes():
             key_count += 1
             key_sizes += len(key)
             value_sizes += len(value)
-    return key_sizes + value_sizes
+    return key_sizes + value_sizes, key_count
 
 
 def main():

@@ -117,8 +117,10 @@ dmypy.json
 *.swp
 evm-benchmark/output
 evm-data
+evm-data-start
 evm-tools
 scilla-benchmark/output
 state.json
 state-*.json
 message.json
+core

@@ -1,5 +1,6 @@
 import re
 import os
+import time
 import binascii
 import subprocess
 from eth_abi import encode_abi
@@ -14,13 +15,23 @@ from statistics import median, mean
 
 from evm_tools import measure_evm_data_size, measure_gas_cost, solc_compile_contract,\
     get_value, generate_params, deploy_contract, perform_transaction, evm_data_dir,\
-    contracts_dir, get_current_root_hash
+    contracts_dir, get_current_root_hash, evm_start_data_dir
 from benchmark_plans import contracts_benchmark_plans, SENDER_ADDRESS, get_token_address
 
 
 def setup_test(setup_plans, contract_address):
     for setup_plan in setup_plans:
         perform_transaction(contract_address, setup_plan)
+
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore)
+        else:
+            shutil.copy2(s, d)
 
 
 def run_tests(bytecode, contract_plan):
@@ -45,30 +56,54 @@ def run_tests(bytecode, contract_plan):
         print('Running {} iterations of `{}` function'.format(
             iterations, test_name))
 
-        def reset_contract():
-            if os.path.isdir(evm_data_dir):
-                shutil.rmtree(evm_data_dir)
+        addr_copy = None
 
-            address = deploy_contract(bytecode, *contract_plan['constructor'])
-            return address
+        def reset_contract(new_contract=False):
+            # if new_contract, create dir in evm_data_start_dir
+            # copy it over to evm_data_dir
+            # if not new_contract, just copy it over
+
+            if new_contract:
+                if os.path.isdir(evm_start_data_dir):
+                    shutil.rmtree(evm_start_data_dir)
+                if os.path.isdir(evm_data_dir):
+                    shutil.rmtree(evm_data_dir)
+                start = time.time()
+                address = deploy_contract(
+                    bytecode, *contract_plan['constructor'], dirname=evm_start_data_dir)
+                start = time.time()
+                copytree(evm_start_data_dir, evm_data_dir)
+                # print('Copy tree', time.time()-start)
+                # print('Deployed contract', time.time()-start)
+                return address
+            else:
+                if os.path.isdir(evm_data_dir):
+                    shutil.rmtree(evm_data_dir)
+                copytree(evm_start_data_dir, evm_data_dir)
+                return addr_copy
 
         execution_times = []
+        blowup_key_counts = []
         iteration_counter = 0
-        address = reset_contract()
+        address = reset_contract(new_contract=True)
+        addr_copy = address
 
         for txn_plan in all_transactions:
             is_matching_test = txn_plan['function'].name == test_name
 
             if is_matching_test:
-                address = reset_contract()
+                start = time.time()
+                address = reset_contract(new_contract=False)
+                # print('reset contract', time.time()-start)
                 # only print once:
                 if iteration_counter == 0:
                     print('Contract deployed at:', address)
                     print('Contract bytecode size: {:,} bytes'.format(
                         len(bytecode.encode('utf-8'))))
                     print('Total gas cost:', measure_gas_cost(bytecode))
+                    db_size, key_count = calculate_all_db_key_value_sizes()
                     print('Initial EVM database size: {:,} bytes'.format(
-                        calculate_all_db_key_value_sizes()))
+                        db_size))
 
                 iteration_counter += 1
                 if iteration_counter % 10 == 0:
@@ -76,6 +111,13 @@ def run_tests(bytecode, contract_plan):
 
             time_taken = perform_transaction(
                 address, txn_plan)
+            db_size, key_count = calculate_all_db_key_value_sizes()
+
+            # print('Iteration {}: {}'.format(
+            #     iteration_counter, time_taken))
+            if time_taken > 300:
+                blowup_key_counts.append(key_count)
+            # print(time.time()-start)
 
             # there may be some transactions interleaved
             # so we only count the ones with the matching function name
@@ -85,8 +127,10 @@ def run_tests(bytecode, contract_plan):
         print('Ran {} iterations of {} function'.format(
             iterations, test_plan['test_name']))
         # print('New database size: {:,} bytes'.format(measure_evm_data_size()))
+        db_size, key_count = calculate_all_db_key_value_sizes()
+        print('Blow up key counts:', blowup_key_counts)
         print('New database size: {:,} bytes'.format(
-            calculate_all_db_key_value_sizes()))
+            db_size))
         print('Median execution time: {0:.6f} ms'.format(
             median(execution_times)))
         print('Mean execution time: {0:.6f} ms'.format(
@@ -134,8 +178,9 @@ def run_benchmark(contract_plan):
     #     calculate_all_db_key_value_sizes()))
 
     run_tests(bytecode, contract_plan)
+    db_size, key_count = calculate_all_db_key_value_sizes()
     print('Final EVM database size: {:,} bytes'.format(
-        calculate_all_db_key_value_sizes()))
+        db_size))
 
 
 def main():

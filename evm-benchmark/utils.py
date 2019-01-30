@@ -12,6 +12,7 @@ from ecdsa import SigningKey, SECP256k1
 import rlp
 from rlp.utils import decode_hex, encode_hex, ascii_chr, str_to_bytes
 import json
+import time
 import random
 
 SENDER_ADDRESS = '0xfaB8FcF1b5fF9547821B4506Fa0C35c68a555F90'
@@ -124,7 +125,9 @@ class ContractFunction():
         return signature
 
 
+start = time.time()
 addresses = get_addresses_from_file()
+print('Get addresses', time.time()-start)
 
 
 def get_random_address(address):
