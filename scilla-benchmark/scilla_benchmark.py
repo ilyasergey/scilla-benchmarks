@@ -56,6 +56,7 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
                '-o', output_filepath, '-i', contract_path, '-libdir', std_lib,
                '-gaslimit', '10000000']
     output = subprocess.check_output(command)
+    # output = subprocess.call(command)
     match = re.search(b'time:(.*)', output)
     time_taken = float(match[1]) * 1000
     return time_taken

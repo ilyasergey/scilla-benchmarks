@@ -93,6 +93,7 @@ def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
     start = time.time()
     deploy_output = subprocess.check_output(
         call_args, stderr=devnull_file)
+    print(deploy_output)
     print('Deploy to EVM', time.time()-start)
 
     prefix = 'Contract Address: '
@@ -114,7 +115,8 @@ def perform_transaction_(from_address, to_address, function,
     encoded_input = encode_input(function, *args)
     command = [evm_exec, '--datadir', evm_data_dir, '--to', to_address,
                '--input', encoded_input, '--from', from_address,
-               '--time', str(time), '--value', str(amount), '--sysstat']
+               '--time', str(time), '--value', str(amount), '--sysstat',
+               '--nojit']
     if root_hash:
         command += ['--root', root_hash]
     output = subprocess.check_output(command, stderr=devnull_file)

@@ -125,8 +125,7 @@ end
 
 (* Transition 2: claiming money back *)
 transition Withdraw ()
-  prs <- pendingReturns;
-  pr = builtin get prs _sender;
+  pr <- pendingReturns[_sender];
   match pr with
   | None =>
     msg  = {_tag : ""; _recipient : _sender; _amount : Uint128 0; code : nothing_to_withdraw_code};

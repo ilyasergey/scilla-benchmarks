@@ -18,11 +18,11 @@ let check_update =
   fun (bs : Map ByStr20 Uint128) =>
   fun (_sender : ByStr20) =>
   fun (_amount : Uint128) =>
-    let c = builtin contains bs _sender in
+  let c = builtin contains bs _sender in
     match c with 
     | False => 
       let bs1 = builtin put bs _sender _amount in
-      Some {Map ByStr20 Uint128} bs1 
+      Some {Map ByStr20 Uint128} bs1
     | True  => None {Map ByStr20 Uint128}
     end
 
@@ -119,12 +119,11 @@ transition ClaimBack ()
   e = { _eventname : "ClaimBackFailure"; caller : _sender; amount : Uint128 0; code : too_early_code};
     event e
   | True =>
-    bs <- backers;
     bal <- _balance;
     (* Goal has not been reached *)
     f <- funded;
     c1 = builtin lt bal goal;
-    c2 = builtin contains bs _sender;
+    c2 <- exists backers[_sender];
     c3 = negb f;
     c4 = andb c1 c2;
     c5 = andb c3 c4;
@@ -133,14 +132,13 @@ transition ClaimBack ()
     e = { _eventname : "ClaimBackFailure"; caller : _sender; amount : Uint128 0; code : cannot_reclaim_code};
       event e
     | True =>
-      res = builtin get bs _sender;
+      res <- backers[_sender];
       match res with
       | None =>
       e = { _eventname : "ClaimBackFailure"; caller : _sender; amount : Uint128 0; code : cannot_reclaim_code};
         event e
       | Some v =>
-        bs1 = builtin remove bs _sender;
-        backers := bs1;
+        delete backers[_sender];
       msg  = {_tag : ""; _recipient : _sender; _amount : v};
       msgs = one_msg msg;
       e = { _eventname : "ClaimBackSuccess"; caller : _sender; amount : v; code : reclaimed_code};
