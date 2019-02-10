@@ -84,7 +84,7 @@ def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
         with open(intermediate_path, 'w') as f:
             f.write(bytecode)
         call_args = [evm_exec, '--file', intermediate_path, '--datadir',
-                     dirname, '--from', SENDER_ADDRESS]
+                     dirname, '--from', SENDER_ADDRESS, '--nojit']
     else:
         call_args = [evm_exec, '--code', bytecode, '--datadir',
                      dirname, '--from', SENDER_ADDRESS]
@@ -92,8 +92,8 @@ def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
 
     start = time.time()
     deploy_output = subprocess.check_output(
-        call_args, stderr=devnull_file)
-    print(deploy_output)
+        call_args)
+    # print(deploy_output)
     print('Deploy to EVM', time.time()-start)
 
     prefix = 'Contract Address: '
@@ -116,10 +116,12 @@ def perform_transaction_(from_address, to_address, function,
     command = [evm_exec, '--datadir', evm_data_dir, '--to', to_address,
                '--input', encoded_input, '--from', from_address,
                '--time', str(time), '--value', str(amount), '--sysstat',
-               '--nojit']
+               '--nojit'
+               ]
     if root_hash:
         command += ['--root', root_hash]
     output = subprocess.check_output(command, stderr=devnull_file)
+    # print(output)
     # import pdb
     # pdb.set_trace()
     # match = re.search(b'vm took (\d*\.?\d*)', output)

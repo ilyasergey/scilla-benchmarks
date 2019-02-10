@@ -56,10 +56,13 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
                '-o', output_filepath, '-i', contract_path, '-libdir', std_lib,
                '-gaslimit', '10000000']
     output = subprocess.check_output(command)
+    # print(output.decode('utf-8'))
     # output = subprocess.call(command)
-    match = re.search(b'time:(.*)', output)
-    time_taken = float(match[1]) * 1000
-    return time_taken
+    all_time_match = re.search(b'time:(.*)', output)
+    output_state_match = re.search(b'output_state_json:(.*)', output)
+    all_time_taken = float(all_time_match[1]) * 1000
+    output_state_time_taken = float(output_state_match[1]) * 1000
+    return all_time_taken, output_state_time_taken
 
 
 def run_benchmark(no_of_state_entries, iterations=100):
@@ -72,6 +75,8 @@ def run_benchmark(no_of_state_entries, iterations=100):
 
         for test_plan in test_plans:
             execution_times = []
+            output_state_times = []
+            percentage = []
             test_name = test_plan['test_name']
             transactions = test_plan['transactions']
             blockchain_filename = test_plan.get('blockchain')
@@ -91,9 +96,11 @@ def run_benchmark(no_of_state_entries, iterations=100):
             for iteration, transaction in enumerate(transactions):
                 if iteration % 10 == 0:
                     print('Ran {} iterations'.format(iteration))
-                time_taken = run_test(
+                all_time_taken, output_state_time = run_test(
                     contract_name, transaction, blockchain_json=bjson)
-                execution_times.append(time_taken)
+                execution_times.append(all_time_taken)
+                output_state_times.append(output_state_time)
+                percentage.append((output_state_time/all_time_taken)*100)
 
             print('Using {:,} state entries...'.format(no_of_state_entries))
             print('Ran {} iterations of `{}` function'.format(
@@ -104,6 +111,10 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 median(execution_times)))
             print('Mean execution time: {0:.6f} ms'.format(
                 mean(execution_times)))
+            print('Median output state JSON time: {0:.6f} ms'.format(
+                median(output_state_times)))
+            print('Median output state JSON as %: {0:.6f}'.format(
+                median(percentage)))
             print()
 
 
