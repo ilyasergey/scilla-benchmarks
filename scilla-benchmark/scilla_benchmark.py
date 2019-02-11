@@ -60,6 +60,25 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     # output = subprocess.call(command)
     all_time_match = re.search(b'time:(.*)', output)
     output_state_match = re.search(b'output_state_json:(.*)', output)
+    mapvalues = [float(i)*1000 for i in re.compile(
+        'map:(.*)').findall(output.decode('utf-8'))]
+    kjson = re.compile('kjson:(.*)').findall(output.decode('utf-8'))
+    kjson = [float(i)*1000 for i in kjson]
+    vjson = re.compile('vjson:(.*)').findall(output.decode('utf-8'))
+    vjson = [float(i)*1000 for i in vjson]
+    kvjson = re.compile('kvjson:(.*)').findall(output.decode('utf-8'))
+    kvjson = [float(i)*1000 for i in kvjson]
+    fold = [float(i)*1000
+            for i in re.compile('fold:(.*)').findall(output.decode('utf-8'))]
+    concat = [float(i)*1000
+              for i in re.compile('concat:(.*)').findall(output.decode('utf-8'))]
+    print()
+    print('all map:'.ljust(8), '{0:.6} ms'.format(sum(mapvalues)))
+    print('kjson:'.ljust(8), '{0:.6} ms'.format(sum(kjson)))
+    print('vjson:'.ljust(8), '{0:.6} ms'.format(sum(vjson)))
+    print('kvjson:'.ljust(8), '{0:.6} ms'.format(sum(kvjson)))
+    print('fold:'.ljust(8), '{0:.6} ms'.format(sum(fold)))
+    print('concat:'.ljust(8), '{0:.6} ms'.format(sum(concat)))
     all_time_taken = float(all_time_match[1]) * 1000
     output_state_time_taken = float(output_state_match[1]) * 1000
     return all_time_taken, output_state_time_taken
