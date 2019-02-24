@@ -4,9 +4,11 @@ import sys
 import time
 import json
 import uuid
+import pprint
 import subprocess
 from statistics import median, mean
 from benchmark_plans import get_benchmark_plans
+from collections import Counter
 
 
 scilla_dir = '/home/scilla'
@@ -66,22 +68,65 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     kjson = [float(i)*1000 for i in kjson]
     vjson = re.compile('vjson:(.*)').findall(output.decode('utf-8'))
     vjson = [float(i)*1000 for i in vjson]
+    # print(vjson)
+    frequencies = dict(zip(Counter(vjson).keys(), Counter(vjson).values()))
     kvjson = re.compile('kvjson:(.*)').findall(output.decode('utf-8'))
     kvjson = [float(i)*1000 for i in kvjson]
     fold = [float(i)*1000
             for i in re.compile('fold:(.*)').findall(output.decode('utf-8'))]
+    call_count = [int(i)
+                  for i in re.compile('called:(.*)').findall(output.decode('utf-8'))]
+    fold_compare = [float(i)*1000
+                    for i in re.compile('fold_compare:(.*)').findall(output.decode('utf-8'))]
+    # infold = [float(i)*1000
+    #           for i in re.compile('in-fold:(.*)').findall(output.decode('utf-8'))]
     concat = [float(i)*1000
               for i in re.compile('concat:(.*)').findall(output.decode('utf-8'))]
     print()
-    print('all map:'.ljust(8), '{0:.6} ms'.format(sum(mapvalues)))
-    print('kjson:'.ljust(8), '{0:.6} ms'.format(sum(kjson)))
-    print('vjson:'.ljust(8), '{0:.6} ms'.format(sum(vjson)))
-    print('kvjson:'.ljust(8), '{0:.6} ms'.format(sum(kvjson)))
-    print('fold:'.ljust(8), '{0:.6} ms'.format(sum(fold)))
-    print('concat:'.ljust(8), '{0:.6} ms'.format(sum(concat)))
+    # print('In scilla runner:')
+    init_res = float(re.search(b'init_res:(.*)', output)[1])*1000
+    cstate = float(re.search(b'cstate:(.*)', output)[1])*1000
+    step_result = float(re.search(b'step_result:(.*)', output)[1])*1000
+    exec_step = float(re.search(b'exec:(.*)', output)[1])*1000
+    osj = float(re.search(b'output_state_json:(.*)', output)[1])*1000
+    omj = float(re.search(b'output_message_json:(.*)', output)[1])*1000
+    oej = float(re.search(b'output_event_json:(.*)', output)[1])*1000
     all_time_taken = float(all_time_match[1]) * 1000
     output_state_time_taken = float(output_state_match[1]) * 1000
-    return all_time_taken, output_state_time_taken
+    # print('all time:'.ljust(8), '{0:.6} ms'.format(all_time_taken))
+    # print('init_res:'.ljust(8), '{0:.6} ms'.format(init_res))
+    # print('cstate:'.ljust(8), '{0:.6} ms'.format(cstate))
+    # print('step_result:'.ljust(8), '{0:.6} ms'.format(step_result))
+    # print('exec_step:'.ljust(8), '{0:.6} ms'.format(exec_step))
+    # print('osj:'.ljust(8), '{0:.6} ms'.format(osj))
+    # print('omj:'.ljust(8), '{0:.6} ms'.format(omj))
+    # print('oej:'.ljust(8), '{0:.6} ms'.format(oej))
+
+    # strlit = int(re.search(b'string:(.*)', output)[1])
+    # bnumlit = int(re.search(b'bnum:(.*)', output)[1])
+    # bystrlit = int(re.search(b'bystr:(.*)', output)[1])
+    # bystrxlit = float(re.search(b'bystrx:(.*)', output)[1])*1000
+    # intlit = int(re.search(b'int:(.*)', output)[1])
+    # uintlit = float(re.search(b'uint:(.*)', output)[1])*1000
+    # print('strlit:'.ljust(8), '{} times'.format(strlit))
+    # print('bnumlit:'.ljust(8), '{} times'.format(bnumlit))
+    # print('bystrlit:'.ljust(8), '{} times'.format(bystrlit))
+    # print('bystrxlit:'.ljust(8), '{0:.6} ms'.format(bystrxlit))
+    # print('intlit:'.ljust(8), '{} times'.format(intlit))
+    # print('uintlit:'.ljust(8), '{0:.6} ms'.format(uintlit))
+
+    # print()
+    # print('In map:')
+    # print('map:'.ljust(8), '{0:.6} ms'.format(sum(mapvalues)))
+    # print('kjson:'.ljust(8), '{0:.6} ms'.format(sum(kjson)))
+    # print('vjson:'.ljust(8), '{0:.6} ms'.format(sum(vjson)))
+    # print('kvjson:'.ljust(8), '{0:.6} ms'.format(sum(kvjson)))
+    # # # print('in-fold:'.ljust(8), '{0:.6} ms'.format(sum(infold)))
+    # print('fold:'.ljust(8), '{0:.6} ms'.format(sum(fold)))
+    # # print('fold_compare:'.ljust(8), '{0:.6} ms'.format(sum(fold_compare)))
+    # print('concat:'.ljust(8), '{0:.6} ms'.format(sum(concat)))
+    # print('called:'.ljust(8), '{} times'.format(sum(call_count)))
+    return all_time_taken, output_state_time_taken, sum(kjson), sum(vjson)
 
 
 def run_benchmark(no_of_state_entries, iterations=100):
@@ -96,6 +141,8 @@ def run_benchmark(no_of_state_entries, iterations=100):
             execution_times = []
             output_state_times = []
             percentage = []
+            kjson_times = []
+            vjson_times = []
             test_name = test_plan['test_name']
             transactions = test_plan['transactions']
             blockchain_filename = test_plan.get('blockchain')
@@ -115,11 +162,14 @@ def run_benchmark(no_of_state_entries, iterations=100):
             for iteration, transaction in enumerate(transactions):
                 if iteration % 10 == 0:
                     print('Ran {} iterations'.format(iteration))
-                all_time_taken, output_state_time = run_test(
-                    contract_name, transaction, blockchain_json=bjson)
+                all_time_taken, output_state_time, \
+                    kjson, vjson = run_test(
+                        contract_name, transaction, blockchain_json=bjson)
                 execution_times.append(all_time_taken)
                 output_state_times.append(output_state_time)
-                percentage.append((output_state_time/all_time_taken)*100)
+                kjson_times.append(kjson)
+                vjson_times.append(vjson)
+                percentage.append((vjson/all_time_taken)*100)
 
             print('Using {:,} state entries...'.format(no_of_state_entries))
             print('Ran {} iterations of `{}` function'.format(
@@ -132,7 +182,11 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 mean(execution_times)))
             print('Median output state JSON time: {0:.6f} ms'.format(
                 median(output_state_times)))
-            print('Median output state JSON as %: {0:.6f}'.format(
+            print('Median kjson: {0:.6f} ms'.format(
+                median(kjson_times)))
+            print('Median vjson: {0:.6f} ms'.format(
+                median(vjson_times)))
+            print('Median vjson as %: {0:.6f}'.format(
                 median(percentage)))
             print()
 

@@ -1,13 +1,16 @@
-version: '3'
+version: "3"
 
 services:
-  evm-benchmark:
-    command: python3.6 /code/evm-benchmark/while.py
-    build: evm-benchmark
-    volumes:
-      - .:/code
+  # evm-benchmark:
+  #   command: python3.6 /code/evm-benchmark/while.py
+  #   build: evm-benchmark
+  #   volumes:
+  #     - .:/code
   scilla-benchmark:
     command: python3.6 /code/scilla-benchmark/while.py
     build: scilla-benchmark
+    ports:
+      - "4200:4200"
     volumes:
       - .:/code
+      - /code/scilla-benchmark/zil-twitter/oracle/node_modules/

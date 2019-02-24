@@ -10,9 +10,13 @@ RUN \
   add-apt-repository ppa:tah83/secp256k1 -y && \
   add-apt-repository -y ppa:avsm/ppa && \
   apt-get update && apt-get upgrade -q -y && \
-  apt-get install -y --no-install-recommends curl build-essential m4 ocaml opam pkg-config zlib1g-dev libgmp-dev libffi-dev libssl-dev libboost-system-dev libsecp256k1-dev libsqlite3-dev && \
+  apt-get install -y --no-install-recommends gnupg curl build-essential m4 ocaml opam pkg-config zlib1g-dev libgmp-dev libffi-dev libssl-dev libboost-system-dev libsecp256k1-dev libsqlite3-dev && \
   rm -rf /var/lib/apt/lists/*
 
+RUN curl -sL https://deb.nodesource.com/setup_11.x  | bash -
+RUN apt-get -y install nodejs
+
+RUN npm install kaya-cli
 
 RUN opam init -y --disable-sandboxing
 
@@ -37,9 +41,20 @@ RUN \
 
 WORKDIR /home/scilla
 
-RUN cd /home/scilla && make
+#RUN cd /home/scilla && make
 
 WORKDIR /code/
 ADD requirements.txt /code/
 RUN pip install -r requirements.txt
 ADD . /code/
+
+RUN \
+  git clone https://github.com/Zilliqa/kaya /home/kaya
+
+WORKDIR /home/kaya
+RUN npm install
+
+WORKDIR /code/scilla-benchmark/zil-twitter/oracle
+RUN npm install
+
+WORKDIR /code
