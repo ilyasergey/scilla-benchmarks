@@ -38,50 +38,37 @@ let lookup_constructor_exn cn =
 (*                    JSON printing                             *)
 (****************************************************************)
 
+
 let kjson_counter = ref 0.0
 let vjson_counter = ref 0.0
 let kvjson_counter = ref 0.0
 let concat_counter = ref 0.0
 let fold_counter = ref 0.0
-let call_counter = ref 0
-(* let string_lit_counter = ref 0 *)
-(* let bnum_lit_counter = ref 0 *)
-(* let bystr_lit_counter = ref 0 *)
-(* let int_lit_counter = ref 0 *)
-let uint_lit_counter = ref 0.0
-let bystrx_lit_counter = ref 0.0
-let vjson_times = ref []
-let fold_compare_counter = ref 0.0
-(* let values = ref [] *)
+
 
 let rec mapvalues_to_json ms =
   let x = Caml.Hashtbl.fold (fun k v a ->
-      (* call_counter := !call_counter + 1; *)
-      (* let foldstart = Unix.gettimeofday() in *)
-      (* let tstart = Unix.gettimeofday() in *)
-      let kjson = "key", (literal_to_json k) in
-      (* let tend = Unix.gettimeofday() in *)
-      (* kjson_counter := Core.Float.add !kjson_counter (Core.Float.sub tend tstart); *)
-      (* fold_compare_counter := !fold_compare_counter +. (tend -. tstart); *)
+      let foldstart = Unix.gettimeofday() in
       let tstart = Unix.gettimeofday() in
-      let vjson = "val", (literal_to_json v) in
+      let kjson = "key", (literal_to_json k) in
       let tend = Unix.gettimeofday() in
-      let vjson_time = Core.Float.sub tend tstart in
-      vjson_times := vjson_time :: !vjson_times;
-      (* vjson_counter := Core.Float.add !vjson_counter vjson_time; *)
-      (* fold_compare_counter := !fold_compare_counter +. (tend -. tstart); *)
+      kjson_counter := !kjson_counter +. (tend -. tstart);
       (* let tstart = Unix.gettimeofday() in *)
-      let kv_json = `Assoc (kjson :: vjson :: []) in
+      let vjson = "val", (literal_to_json v) in
       (* let tend = Unix.gettimeofday() in *)
-      (* kvjson_counter := Core.Float.add !kvjson_counter (Core.Float.sub tend tstart); *)
-      (* fold_compare_counter := !fold_compare_counter +. (tend -. tstart); *)
-      (* let tstart = Unix.gettimeofday() in *)
+      (* vjson_counter := !vjson_counter +. (tend -. tstart); *)
+      let tstart = Unix.gettimeofday() in
+      let kv_json = `Assoc (kjson :: vjson :: []) in
+      let tend = Unix.gettimeofday() in
+      kvjson_counter := !kvjson_counter +. (tend -. tstart);
+      (* let _ = Printf.printf "kvjson:%f\n" (Core.Float.sub tend tstart) in *)
+      let tstart = Unix.gettimeofday() in
       let concat = kv_json :: a in
-      (* concat_counter := !concat_counter +. (tend -. tstart); *)
-      (* fold_compare_counter := !fold_compare_counter +. (foldend -. foldstart); *)
-      (* let foldend = Unix.gettimeofday() in *)
-      (* fold_counter := !fold_counter +. (foldend -. foldstart); *)
-      (* let _ = Printf.printf "in-fold:%f\n" (Core.Float.sub foldend foldstart) in *)
+      let tend = Unix.gettimeofday() in
+      concat_counter := !concat_counter +. (tend -. tstart);
+      (* let _ = Printf.printf "concat:%f\n" (Core.Float.sub tend tstart) in *)
+      let foldend = Unix.gettimeofday() in
+      fold_counter := !fold_counter +. (foldend -. foldstart);
       concat) ms [] in
   x
 
@@ -103,23 +90,15 @@ and adttyps_to_json tlist =
 
 and literal_to_json lit =
   match lit with
-  | StringLit(x)
-  | BNum(x)
-  | ByStr(x)
-  | ByStrX(_, x) ->
-    (* let tstart = Unix.gettimeofday() in *)
-    `String (x)
-  (* let tend = Unix.gettimeofday() in *)
-  (* let bystrx_time = tend -. tstart in *)
-  (* bystrx_lit_counter := !bystrx_lit_counter +. bystrx_time; *)
-  | IntLit x  ->
-    `String (string_of_int_lit x)
+  | StringLit (x) | BNum (x) | ByStr(x)
+  | ByStrX(_, x) -> `String (x)
+  | IntLit x  -> `String (string_of_int_lit x)
   | UintLit x ->
-    (* let tstart = Unix.gettimeofday() in *)
-    `String (string_of_uint_lit x)
-  (* let tend = Unix.gettimeofday() in *)
-  (* let uint_time = tend -. tstart in *)
-  (* uint_lit_counter := !uint_lit_counter +. uint_time; *)
+    let tstart = Unix.gettimeofday() in
+    let str = (string_of_uint_lit x) in
+    let tend = Unix.gettimeofday() in
+    vjson_counter := !vjson_counter +. (tend -. tstart);
+    `String str
   | Map ((_, _), kvs) ->
     let tstart = Unix.gettimeofday() in
     let ls = `List (mapvalues_to_json kvs) in

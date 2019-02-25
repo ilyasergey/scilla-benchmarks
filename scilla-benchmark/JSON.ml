@@ -227,7 +227,7 @@ let state_to_json state =
   let tstart = Unix.gettimeofday() in
   let litpair = (literal_to_json lit) in
   let tend = Unix.gettimeofday() in
-  let _ = Printf.printf "literal_to_json:%f\n" (Core.Float.sub tend tstart) in
+  let _ = Printf.printf "assoc:%f\n" (Core.Float.sub tend tstart) in
 
   let assoc = `Assoc [ 
       ("vname", `String vname) ; 
@@ -274,33 +274,21 @@ module ContractState = struct
     let jlist = json |> Basic.Util.to_list in
     List.map jlist ~f:jobj_to_statevar
 
+  (* Get a json object from given states *)
+  let state_to_json states = 
+    let jsonl = slist_to_json states in
+    Printf.printf "kjson:%f\n" (!PrettyPrinters.kjson_counter);
+    Printf.printf "vjson:%f\n" (!PrettyPrinters.vjson_counter);
+    Printf.printf "kvjson:%f\n" (!PrettyPrinters.kvjson_counter);
+    Printf.printf "concat:%f\n" (!PrettyPrinters.concat_counter);
+    Printf.printf "fold:%f\n" (!PrettyPrinters.fold_counter);
+    `List jsonl
+
   (** 
     ** Prints a list of state variables (string, literal)
     ** as a json and returns it as a string.
     ** pp enables pretty printing.
     **)
-
-
-  (* Get a json object from given states *)
-  let state_to_json states = 
-    let jsonl = slist_to_json states in
-    let _ = Printf.printf "kjson:%f\n" (!PrettyPrinters.kjson_counter) in
-    (* let _ = Printf.printf "vjson:%f\n" (!PrettyPrinters.vjson_counter) in *)
-    let _ = Printf.printf "kvjson:%f\n" (!PrettyPrinters.kvjson_counter) in
-    let _ = Printf.printf "concat:%f\n" (!PrettyPrinters.concat_counter) in
-    let _ = Printf.printf "fold:%f\n" (!PrettyPrinters.fold_counter) in
-    let _ = Printf.printf "fold_compare:%f\n" (!PrettyPrinters.fold_compare_counter) in
-    (* let _ = Printf.printf "fold_compare:%f\n" (!PrettyPrinters.fold_compare_counter) in *)
-    let _ = Printf.printf "called:%d\n" (!PrettyPrinters.call_counter) in
-    (* let _ = Printf.printf "string:%d\n" (!PrettyPrinters.string_lit_counter) in *)
-    (* let _ = Printf.printf "bnum:%d\n" (!PrettyPrinters.bnum_lit_counter) in *)
-    (* let _ = Printf.printf "bystr:%d\n" (!PrettyPrinters.bystr_lit_counter) in *)
-    (* let _ = Printf.printf "bystrx:%f\n" (!PrettyPrinters.bystrx_lit_counter) in *)
-    (* let _ = Printf.printf "int:%d\n" (!PrettyPrinters.int_lit_counter) in *)
-    (* let _ = Printf.printf "uint:%f\n" (!PrettyPrinters.uint_lit_counter) in *)
-    let _ = Caml.List.iter (fun x -> Printf.printf "vjson:%f\n" x) !PrettyPrinters.vjson_times in
-    `List jsonl
-
   let state_to_string ?(pp = false) states =
     let json = state_to_json states in
     if pp

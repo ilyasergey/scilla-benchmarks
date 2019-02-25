@@ -82,7 +82,6 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     #           for i in re.compile('in-fold:(.*)').findall(output.decode('utf-8'))]
     concat = [float(i)*1000
               for i in re.compile('concat:(.*)').findall(output.decode('utf-8'))]
-    print()
     # print('In scilla runner:')
     init_res = float(re.search(b'init_res:(.*)', output)[1])*1000
     cstate = float(re.search(b'cstate:(.*)', output)[1])*1000
@@ -126,7 +125,8 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     # # print('fold_compare:'.ljust(8), '{0:.6} ms'.format(sum(fold_compare)))
     # print('concat:'.ljust(8), '{0:.6} ms'.format(sum(concat)))
     # print('called:'.ljust(8), '{} times'.format(sum(call_count)))
-    return all_time_taken, output_state_time_taken, sum(kjson), sum(vjson)
+    return all_time_taken, output_state_time_taken,\
+        sum(kjson), sum(vjson), sum(fold), sum(concat), sum(kvjson)
 
 
 def run_benchmark(no_of_state_entries, iterations=100):
@@ -143,6 +143,9 @@ def run_benchmark(no_of_state_entries, iterations=100):
             percentage = []
             kjson_times = []
             vjson_times = []
+            kvjson_times = []
+            fold_times = []
+            concat_times = []
             test_name = test_plan['test_name']
             transactions = test_plan['transactions']
             blockchain_filename = test_plan.get('blockchain')
@@ -163,13 +166,26 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 if iteration % 10 == 0:
                     print('Ran {} iterations'.format(iteration))
                 all_time_taken, output_state_time, \
-                    kjson, vjson = run_test(
+                    kjson, vjson, fold, concat, kvjson = run_test(
                         contract_name, transaction, blockchain_json=bjson)
                 execution_times.append(all_time_taken)
                 output_state_times.append(output_state_time)
                 kjson_times.append(kjson)
                 vjson_times.append(vjson)
-                percentage.append((vjson/all_time_taken)*100)
+                concat_times.append(concat)
+                kvjson_times.append(kvjson)
+                fold_times.append(fold)
+
+            kjson_percent = [(kjson_times[i]/fold_times[i])
+                             * 100 for i in range(len(kjson_times))]
+            vjson_percent = [(vjson_times[i]/fold_times[i])
+                             * 100 for i in range(len(vjson_times))]
+            kvjson_percent = [(kvjson_times[i]/fold_times[i])
+                              * 100 for i in range(len(kvjson_times))]
+            concat_percent = [(concat_times[i]/fold_times[i])
+                              * 100 for i in range(len(concat_times))]
+            fold_percent = [(fold_times[i]/execution_times[i])
+                            * 100 for i in range(len(fold_times))]
 
             print('Using {:,} state entries...'.format(no_of_state_entries))
             print('Ran {} iterations of `{}` function'.format(
@@ -182,12 +198,22 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 mean(execution_times)))
             print('Median output state JSON time: {0:.6f} ms'.format(
                 median(output_state_times)))
-            print('Median kjson: {0:.6f} ms'.format(
-                median(kjson_times)))
-            print('Median vjson: {0:.6f} ms'.format(
-                median(vjson_times)))
+            # print('Median kjson: {0:.6f} ms'.format(
+            #     median(kjson_times)))
+            # print('Median vjson: {0:.6f} ms'.format(
+            #     median(vjson_times)))
+            print('Median kjson as %: {0:.6f}'.format(
+                median(kjson_percent)))
             print('Median vjson as %: {0:.6f}'.format(
-                median(percentage)))
+                median(vjson_percent)))
+            print('Median kvjson as %: {0:.6f}'.format(
+                median(kvjson_percent)))
+            print('Median concat as %: {0:.6f}'.format(
+                median(concat_percent)))
+            # print('Median fold: {0:.6f} ms'.format(
+            #     median(fold_times)))
+            print('Median fold as %: {0:.6f}'.format(
+                median(fold_percent)))
             print()
 
 
