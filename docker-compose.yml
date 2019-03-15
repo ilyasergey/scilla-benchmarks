@@ -7,7 +7,7 @@ services:
     volumes:
       - .:/code
   scilla-benchmark:
-    command: python3.6 /code/scilla-benchmark/while.py
+    command: python3.6 /code/scilla-benchmark/scilla_benchmark.py $ENTRIES $ITER
     build: scilla-benchmark
     ports:
       - "4200:4200"

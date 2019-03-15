@@ -191,7 +191,8 @@ def run_benchmark(no_of_state_entries, iterations=100):
             fold_percent = [(fold_times[i]/execution_times[i])
                             * 100 for i in range(len(fold_times))]
 
-            print('Using {:,} state entries...'.format(no_of_state_entries))
+            print('Using {:,} state entries in {} contract'.format(
+                no_of_state_entries, contract_name))
             print('Ran {} iterations of `{}` function'.format(
                 iterations, test_name))
             # print('New database size: {:,} bytes'.format(
