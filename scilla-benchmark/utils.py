@@ -61,18 +61,18 @@ def generate_addresses(no_of_addresses):
             for i in range(no_of_addresses)]
 
 
-def get_addresses(no_of_addresses):
+def get_addresses():
     current_dir = os.path.dirname(os.path.realpath(__file__))
     addresses_json = os.path.join(current_dir, 'addresses.json')
     with open(addresses_json) as f:
         return json.load(f)
 
 
-addresses = get_addresses(300000)
+addresses = get_addresses()
 
 
 if __name__ == '__main__':
-    iterations = 300000
+    iterations = 600000
     addresses = [generate_contract_address(
         SENDER_ADDRESS, i) for i in range(iterations)]
     print('Generated {} addresses'.format(len(addresses)))
