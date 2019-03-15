@@ -26,9 +26,6 @@ RUN opam install -y ocaml-migrate-parsetree core cryptokit ppx_sexp_conv yojson 
   
 RUN echo ". ~/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true " >> ~/.bashrc
 
-RUN eval `opam config env`
-
-
 RUN \
   add-apt-repository ppa:ethereum/ethereum && \
   add-apt-repository ppa:deadsnakes/ppa && \
@@ -41,6 +38,10 @@ RUN \
 
 WORKDIR /home/scilla
 
+RUN eval `opam config env` && make
+
+WORKDIR /code
+
 #RUN cd /home/scilla && make
 
 WORKDIR /code/
@@ -48,13 +49,13 @@ ADD requirements.txt /code/
 RUN pip install -r requirements.txt
 ADD . /code/
 
-RUN \
-  git clone https://github.com/Zilliqa/kaya /home/kaya
-
-WORKDIR /home/kaya
-RUN npm install
-
-WORKDIR /code/scilla-benchmark/zil-twitter/oracle
-RUN npm install
-
-WORKDIR /code
+#RUN \
+#  git clone https://github.com/Zilliqa/kaya /home/kaya
+#
+#WORKDIR /home/kaya
+#RUN npm install
+#
+#WORKDIR /code/scilla-benchmark/zil-twitter/oracle
+#RUN npm install
+#
+#WORKDIR /code
