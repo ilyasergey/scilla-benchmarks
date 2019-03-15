@@ -53,10 +53,10 @@ let rec mapvalues_to_json ms =
       let kjson = "key", (literal_to_json k) in
       let tend = Unix.gettimeofday() in
       kjson_counter := !kjson_counter +. (tend -. tstart);
-      (* let tstart = Unix.gettimeofday() in *)
+      let tstart = Unix.gettimeofday() in
       let vjson = "val", (literal_to_json v) in
-      (* let tend = Unix.gettimeofday() in *)
-      (* vjson_counter := !vjson_counter +. (tend -. tstart); *)
+      let tend = Unix.gettimeofday() in
+      vjson_counter := !vjson_counter +. (tend -. tstart);
       let tstart = Unix.gettimeofday() in
       let kv_json = `Assoc (kjson :: vjson :: []) in
       let tend = Unix.gettimeofday() in
@@ -99,6 +99,8 @@ and literal_to_json lit =
     let tend = Unix.gettimeofday() in
     vjson_counter := !vjson_counter +. (tend -. tstart);
     `String str
+  (* | UintLit _ ->
+     `String "100" *)
   | Map ((_, _), kvs) ->
     let tstart = Unix.gettimeofday() in
     let ls = `List (mapvalues_to_json kvs) in

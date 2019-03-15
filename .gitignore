@@ -125,3 +125,5 @@ state-*.json
 message.json
 core
 zil-twitter
+
+.vscode
