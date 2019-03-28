@@ -161,6 +161,12 @@ def run_benchmark(contract_plan):
         contracts_dir, contract_plan['contract_filename'])
     bytecode = solc_compile_contract(
         contract_path, contract_plan['contract_name'])
+
+    with open(contract_path) as f:
+        source_code_len = len(f.read())
+        print('{} source size is:'.format(
+            contract_plan['contract_name']), source_code_len)
+
     # address = deploy_contract(bytecode, *contract_plan['constructor'])
     # print('Contract deployed at:', address)
     # print('Contract bytecode size: {:,} bytes'.format(

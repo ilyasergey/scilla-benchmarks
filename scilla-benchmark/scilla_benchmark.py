@@ -72,7 +72,7 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     frequencies = dict(zip(Counter(vjson).keys(), Counter(vjson).values()))
     kvjson = re.compile('kvjson:(.*)').findall(output.decode('utf-8'))
     kvjson = [float(i)*1000 for i in kvjson]
-    fold = [float(i)*1000
+    fold = [float(i)
             for i in re.compile('fold:(.*)').findall(output.decode('utf-8'))]
     call_count = [int(i)
                   for i in re.compile('called:(.*)').findall(output.decode('utf-8'))]
@@ -90,9 +90,12 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     osj = float(re.search(b'output_state_json:(.*)', output)[1])*1000
     omj = float(re.search(b'output_message_json:(.*)', output)[1])*1000
     oej = float(re.search(b'output_event_json:(.*)', output)[1])*1000
+    write_to_file = float(re.search(b'write_to_file:(.*)', output)[1])*1000
     all_time_taken = float(all_time_match[1]) * 1000
     output_state_time_taken = float(output_state_match[1]) * 1000
     all_without_osj = all_time_taken - output_state_time_taken
+    minor_collections = int(re.search(b'minor_collections: (.*)', output)[1])
+    major_collections = int(re.search(b'major_collections: (.*)', output)[1])
 
     # print('all time:'.ljust(8), '{0:.6} ms'.format(all_time_taken))
     # print('init_res:'.ljust(8), '{0:.6} ms'.format(init_res))
@@ -124,11 +127,13 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     # print('kvjson:'.ljust(8), '{0:.6} ms'.format(sum(kvjson)))
     # # # print('in-fold:'.ljust(8), '{0:.6} ms'.format(sum(infold)))
     # print('fold:'.ljust(8), '{0:.6} ms'.format(sum(fold)))
+    # print(fold)
     # # print('fold_compare:'.ljust(8), '{0:.6} ms'.format(sum(fold_compare)))
     # print('concat:'.ljust(8), '{0:.6} ms'.format(sum(concat)))
     # print('called:'.ljust(8), '{} times'.format(sum(call_count)))
     return all_time_taken, output_state_time_taken, all_without_osj,\
-        sum(kjson), sum(vjson), sum(fold), sum(concat), sum(kvjson)
+        sum(kjson), sum(vjson), sum(fold), sum(concat), sum(kvjson), \
+        minor_collections, major_collections, write_to_file
 
 
 def run_benchmark(no_of_state_entries, iterations=100):
@@ -136,6 +141,7 @@ def run_benchmark(no_of_state_entries, iterations=100):
     for contract_plan in benchmark_plans:
         contract_name = contract_plan['contract']
         test_plans = contract_plan['tests']
+        print()
         print('Using {:,} state entries...'.format(no_of_state_entries))
         create_state_file(contract_name, contract_plan['state'])
 
@@ -149,6 +155,9 @@ def run_benchmark(no_of_state_entries, iterations=100):
             fold_times = []
             concat_times = []
             without_osj_times = []
+            minor_collections = []
+            major_collections = []
+            write_file_times = []
             test_name = test_plan['test_name']
             transactions = test_plan['transactions']
             blockchain_filename = test_plan.get('blockchain')
@@ -161,6 +170,12 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 bjson = os.path.join(
                     contracts_dir, blockchain_filename)
 
+            # test_dir = os.path.join(contracts_dir, contract_name)
+            # contract_path = os.path.join(test_dir, 'contract.scilla')
+            # with open(contract_path) as f:
+            #     content = f.read()
+            #     print('Contract {} size:'.format(contract_name), len(content))
+
             if iterations == 0:
                 raise Exception(
                     'Transactions is empty, addresses generated is not enough')
@@ -169,7 +184,8 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 if iteration % 10 == 0:
                     print('Ran {} iterations'.format(iteration))
                 all_time_taken, output_state_time, all_without_osj,\
-                    kjson, vjson, fold, concat, kvjson = run_test(
+                    kjson, vjson, fold, concat, kvjson, minor, \
+                    major, write_file_time = run_test(
                         contract_name, transaction, blockchain_json=bjson)
                 execution_times.append(all_time_taken)
                 output_state_times.append(output_state_time)
@@ -179,15 +195,18 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 concat_times.append(concat)
                 kvjson_times.append(kvjson)
                 fold_times.append(fold)
+                minor_collections.append(minor)
+                major_collections.append(major)
+                write_file_times.append(write_file_time)
 
-            kjson_percent = [(kjson_times[i]/fold_times[i])
-                             * 100 for i in range(len(kjson_times))]
-            vjson_percent = [(vjson_times[i]/fold_times[i])
-                             * 100 for i in range(len(vjson_times))]
-            kvjson_percent = [(kvjson_times[i]/fold_times[i])
-                              * 100 for i in range(len(kvjson_times))]
-            concat_percent = [(concat_times[i]/fold_times[i])
-                              * 100 for i in range(len(concat_times))]
+            # kjson_percent = [(kjson_times[i]/fold_times[i])
+            #                  * 100 for i in range(len(kjson_times))]
+            # vjson_percent = [(vjson_times[i]/fold_times[i])
+            #                  * 100 for i in range(len(vjson_times))]
+            # kvjson_percent = [(kvjson_times[i]/fold_times[i])
+            #                   * 100 for i in range(len(kvjson_times))]
+            # concat_percent = [(concat_times[i]/fold_times[i])
+            #                   * 100 for i in range(len(concat_times))]
             fold_percent = [(fold_times[i]/execution_times[i])
                             * 100 for i in range(len(fold_times))]
 
@@ -195,6 +214,8 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 no_of_state_entries, contract_name))
             print('Ran {} iterations of `{}` function'.format(
                 iterations, test_name))
+            print('Minor collections:', median(minor_collections))
+            print('Major collections:', median(major_collections))
             # print('New database size: {:,} bytes'.format(
             #     calculate_all_db_key_value_sizes()))
             print('Median execution time: {0:.6f} ms'.format(
@@ -205,20 +226,22 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 median(without_osj_times)))
             print('    Median output state JSON time: {0:.6f} ms'.format(
                 median(output_state_times)))
+            print('    Median IO time: {0:.6f} ms'.format(
+                median(write_file_times)))
             # print('Median kjson: {0:.6f} ms'.format(
             #     median(kjson_times)))
             # print('Median vjson: {0:.6f} ms'.format(
             #     median(vjson_times)))
-            print('        Median fold as %: {0:.6f}'.format(
-                median(fold_percent)))
-            print('            Median kjson as %: {0:.6f}'.format(
-                median(kjson_percent)))
-            print('            Median vjson as %: {0:.6f}'.format(
-                median(vjson_percent)))
-            print('            Median kvjson as %: {0:.6f}'.format(
-                median(kvjson_percent)))
-            print('            Median concat as %: {0:.6f}'.format(
-                median(concat_percent)))
+            # print('        Median fold as %: {0:.6f}'.format(
+            #     median(fold_percent)))
+            # print('            Median kjson as %: {0:.6f}'.format(
+            #     median(kjson_percent)))
+            # print('            Median vjson as %: {0:.6f}'.format(
+            #     median(vjson_percent)))
+            # print('            Median kvjson as %: {0:.6f}'.format(
+            #     median(kvjson_percent)))
+            # print('            Median concat as %: {0:.6f}'.format(
+            #     median(concat_percent)))
             # print('Median fold: {0:.6f} ms'.format(
             #     median(fold_times)))
             print()
