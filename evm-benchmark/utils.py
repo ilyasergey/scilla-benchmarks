@@ -74,7 +74,7 @@ def generate_addresses(no_of_addresses):
 def get_addresses_from_file():
     addresses = None
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    filepath = os.path.join(current_dir, 'addresses.json')
+    filepath = os.path.join(current_dir, 'addresses1.json')
     with open(filepath) as f:
         addresses = json.load(f)
     return addresses
@@ -127,7 +127,6 @@ class ContractFunction():
 
 start = time.time()
 addresses = get_addresses_from_file()
-print('Get addresses', time.time()-start)
 
 
 def get_random_address(address):
@@ -161,7 +160,8 @@ def get_random_token_id(address):
 
 
 if __name__ == '__main__':
-    iterations = 5
+    iterations = 600000
     addresses = [generate_contract_address(
         SENDER_ADDRESS, i) for i in range(iterations)]
-    print(addresses)
+    with open('addresses1.json', 'w') as f:
+        json.dump(addresses, f)

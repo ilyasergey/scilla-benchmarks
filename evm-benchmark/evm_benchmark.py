@@ -83,6 +83,8 @@ def run_tests(bytecode, contract_plan):
                 return addr_copy
 
         execution_times = []
+        init_times = []
+        io_times = []
         blowup_key_counts = []
         iteration_counter = 0
         address = reset_contract(new_contract=True)
@@ -100,7 +102,7 @@ def run_tests(bytecode, contract_plan):
                     print('Contract deployed at:', address)
                     print('Contract bytecode size: {:,} bytes'.format(
                         len(bytecode.encode('utf-8'))))
-                    print('Total gas cost:', measure_gas_cost(bytecode))
+                    # print('Total gas cost:', measure_gas_cost(bytecode))
                     db_size, key_count = calculate_all_db_key_value_sizes()
                     print('Initial EVM database size: {:,} bytes'.format(
                         db_size))
@@ -109,32 +111,31 @@ def run_tests(bytecode, contract_plan):
                 if iteration_counter % 10 == 0:
                     print('Ran {} iterations'.format(iteration_counter))
 
-            time_taken = perform_transaction(
+            exec_time, init_time, io_time = perform_transaction(
                 address, txn_plan)
             db_size, key_count = calculate_all_db_key_value_sizes()
-
-            # print('Iteration {}: {}'.format(
-            #     iteration_counter, time_taken))
-            if time_taken > 300:
-                blowup_key_counts.append(key_count)
-            # print(time.time()-start)
 
             # there may be some transactions interleaved
             # so we only count the ones with the matching function name
             if is_matching_test:
-                execution_times.append(time_taken)
+                execution_times.append(exec_time)
+                init_times.append(init_time)
+                io_times.append(io_time)
 
         print('Ran {} iterations of {} function'.format(
             iterations, test_plan['test_name']))
         # print('New database size: {:,} bytes'.format(measure_evm_data_size()))
         db_size, key_count = calculate_all_db_key_value_sizes()
-        print('Blow up key counts:', blowup_key_counts)
         print('New database size: {:,} bytes'.format(
             db_size))
         print('Median execution time: {0:.6f} ms'.format(
             median(execution_times)))
         print('Mean execution time: {0:.6f} ms'.format(
             mean(execution_times)))
+        print('Median init time: {0:.6f} ms'.format(
+            median(init_times)))
+        print('Median IO time: {0:.6f} ms'.format(
+            median(io_times)))
         print()
 
 

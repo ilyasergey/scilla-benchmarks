@@ -87,7 +87,7 @@ def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
                      dirname, '--from', SENDER_ADDRESS, '--nojit']
     else:
         call_args = [evm_exec, '--code', bytecode, '--datadir',
-                     dirname, '--from', SENDER_ADDRESS]
+                     dirname, '--from', SENDER_ADDRESS, '--nojit']
     print('Write bytecode to file', time.time()-start)
 
     start = time.time()
@@ -121,13 +121,12 @@ def perform_transaction_(from_address, to_address, function,
     if root_hash:
         command += ['--root', root_hash]
     output = subprocess.check_output(command, stderr=devnull_file)
-    # print(output)
-    # import pdb
-    # pdb.set_trace()
-    # match = re.search(b'vm took (\d*\.?\d*)', output)
-    match = re.search(b'Non IO execution time: (.*)', output)
-    time_taken = float(match[1])  # remove ms from match
-    return time_taken
+    print(output)
+    exec_time = float(re.search(b'vm took (\\d*\\.?\\d*)', output)[1])
+    init_time = float(re.search(b'Init: (\\d*)', output)[1])
+    io_time = float(re.search(b'IO: (\\d*)', output)[1])
+
+    return exec_time, init_time, io_time
 
 
 def measure_gas_cost(bytecode):
@@ -145,10 +144,10 @@ def perform_transaction(address, txn_plan, root_hash=None):
     function = txn_plan['function']
     block_timestamp = txn_plan.get('time', 0)
     amount = txn_plan.get('amount', 0)
-    time_taken = perform_transaction_(caller, address, function,
-                                      *args, time=block_timestamp,
-                                      amount=amount, root_hash=root_hash)
-    return time_taken
+    exec_time, init_time, io_time = perform_transaction_(caller, address, function,
+                                                         *args, time=block_timestamp,
+                                                         amount=amount, root_hash=root_hash)
+    return exec_time, init_time, io_time
 
 
 def get_current_root_hash():
