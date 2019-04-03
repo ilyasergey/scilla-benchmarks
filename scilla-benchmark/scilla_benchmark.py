@@ -94,8 +94,6 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     all_time_taken = float(all_time_match[1]) * 1000
     output_state_time_taken = float(output_state_match[1]) * 1000
     all_without_osj = all_time_taken - output_state_time_taken
-    minor_collections = int(re.search(b'minor_collections: (.*)', output)[1])
-    major_collections = int(re.search(b'major_collections: (.*)', output)[1])
 
     # print('all time:'.ljust(8), '{0:.6} ms'.format(all_time_taken))
     # print('init_res:'.ljust(8), '{0:.6} ms'.format(init_res))
@@ -133,7 +131,7 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     # print('called:'.ljust(8), '{} times'.format(sum(call_count)))
     return all_time_taken, output_state_time_taken, all_without_osj,\
         sum(kjson), sum(vjson), sum(fold), sum(concat), sum(kvjson), \
-        minor_collections, major_collections, write_to_file
+        write_to_file
 
 
 def run_benchmark(no_of_state_entries, iterations=100):
@@ -155,8 +153,6 @@ def run_benchmark(no_of_state_entries, iterations=100):
             fold_times = []
             concat_times = []
             without_osj_times = []
-            minor_collections = []
-            major_collections = []
             write_file_times = []
             test_name = test_plan['test_name']
             transactions = test_plan['transactions']
@@ -184,8 +180,8 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 if iteration % 10 == 0:
                     print('Ran {} iterations'.format(iteration))
                 all_time_taken, output_state_time, all_without_osj,\
-                    kjson, vjson, fold, concat, kvjson, minor, \
-                    major, write_file_time = run_test(
+                    kjson, vjson, fold, concat, kvjson, \
+                    write_file_time = run_test(
                         contract_name, transaction, blockchain_json=bjson)
                 execution_times.append(all_time_taken)
                 output_state_times.append(output_state_time)
@@ -195,8 +191,6 @@ def run_benchmark(no_of_state_entries, iterations=100):
                 concat_times.append(concat)
                 kvjson_times.append(kvjson)
                 fold_times.append(fold)
-                minor_collections.append(minor)
-                major_collections.append(major)
                 write_file_times.append(write_file_time)
 
             # kjson_percent = [(kjson_times[i]/fold_times[i])

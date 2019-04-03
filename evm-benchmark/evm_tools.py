@@ -16,7 +16,7 @@ from collections.abc import Iterable
 
 GO_ROOT = os.environ['GOROOT']
 evm_exec = os.path.join(GO_ROOT, 'evm')
-# evm_deploy_exec = os.path.join(GO_ROOT, 'evm')
+evm_deploy_exec = os.path.join(GO_ROOT, 'evm-deploy')
 disasm_exec = os.path.join(GO_ROOT, 'disasm')
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -27,6 +27,7 @@ contracts_dir = os.path.join(current_dir, 'contracts')
 
 devnull_file = open(os.devnull, 'w')
 ROOT_HASH = '0000000000000000000000000000000000000000000000000000000000000000'
+BYTECODE_MAX_LEN = 80000
 
 
 def measure_evm_data_size():
@@ -69,6 +70,28 @@ def encode_args(types, values):
     return hex_args.decode('utf-8')
 
 
+def write_to_intermediate_file(bytecode):
+    intermediate_path = os.path.join(output_dir, 'intermediate.bin')
+    with open(intermediate_path, 'w') as f:
+        f.write(bytecode)
+    return intermediate_path
+
+
+def create_deployment_bytecode(bytecode):
+    call_args = None
+
+    if len(bytecode) > BYTECODE_MAX_LEN:
+        intermediate_path = write_to_intermediate_file(bytecode)
+        echo = subprocess.Popen(
+            ('echo', intermediate_path), stdout=subprocess.PIPE)
+        call_args = [evm_deploy_exec]
+    else:
+        echo = subprocess.Popen(('echo', bytecode), stdout=subprocess.PIPE)
+        call_args = [evm_deploy_exec]
+    deploy_bytecode = subprocess.check_output(call_args, stdin=echo.stdout)
+    return deploy_bytecode.strip().decode('utf-8')
+
+
 def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
     start = time.time()
     if constructor_args:
@@ -76,13 +99,15 @@ def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
         arg_values = generate_params(arg_values)
         bytecode += encode_args(arg_types, arg_values)
     print('Encoding params', time.time()-start)
+    # import pdb
+    # pdb.set_trace()
+
+    bytecode = create_deployment_bytecode(bytecode)
 
     start = time.time()
     call_args = None
-    if len(bytecode) > 80000:
-        intermediate_path = os.path.join(output_dir, 'intermediate.bin')
-        with open(intermediate_path, 'w') as f:
-            f.write(bytecode)
+    if len(bytecode) > BYTECODE_MAX_LEN:
+        intermediate_path = write_to_intermediate_file(bytecode)
         call_args = [evm_exec, '--file', intermediate_path, '--datadir',
                      dirname, '--from', SENDER_ADDRESS, '--nojit']
     else:
@@ -121,7 +146,6 @@ def perform_transaction_(from_address, to_address, function,
     if root_hash:
         command += ['--root', root_hash]
     output = subprocess.check_output(command, stderr=devnull_file)
-    print(output)
     exec_time = float(re.search(b'vm took (\\d*\\.?\\d*)', output)[1])
     init_time = float(re.search(b'Init: (\\d*)', output)[1])
     io_time = float(re.search(b'IO: (\\d*)', output)[1])
