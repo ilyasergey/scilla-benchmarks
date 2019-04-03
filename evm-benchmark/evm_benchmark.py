@@ -16,7 +16,7 @@ from statistics import median, mean
 from evm_tools import measure_evm_data_size, measure_gas_cost, solc_compile_contract,\
     get_value, generate_params, deploy_contract, perform_transaction, evm_data_dir,\
     contracts_dir, get_current_root_hash, evm_start_data_dir
-from benchmark_plans import contracts_benchmark_plans, SENDER_ADDRESS, get_token_address
+from benchmark_plans import contracts_benchmark_plans, SENDER_ADDRESS
 
 
 def setup_test(setup_plans, contract_address):
@@ -68,13 +68,9 @@ def run_tests(bytecode, contract_plan):
                     shutil.rmtree(evm_start_data_dir)
                 if os.path.isdir(evm_data_dir):
                     shutil.rmtree(evm_data_dir)
-                start = time.time()
                 address = deploy_contract(
                     bytecode, *contract_plan['constructor'], dirname=evm_start_data_dir)
-                start = time.time()
                 copytree(evm_start_data_dir, evm_data_dir)
-                # print('Copy tree', time.time()-start)
-                # print('Deployed contract', time.time()-start)
                 return address
             else:
                 if os.path.isdir(evm_data_dir):
@@ -85,7 +81,6 @@ def run_tests(bytecode, contract_plan):
         execution_times = []
         init_times = []
         io_times = []
-        blowup_key_counts = []
         iteration_counter = 0
         address = reset_contract(new_contract=True)
         addr_copy = address
@@ -94,10 +89,7 @@ def run_tests(bytecode, contract_plan):
             is_matching_test = txn_plan['function'].name == test_name
 
             if is_matching_test:
-                start = time.time()
                 address = reset_contract(new_contract=False)
-                # print('reset contract', time.time()-start)
-                # only print once:
                 if iteration_counter == 0:
                     print('Contract deployed at:', address)
                     print('Contract bytecode size: {:,} bytes'.format(
@@ -113,7 +105,6 @@ def run_tests(bytecode, contract_plan):
 
             exec_time, init_time, io_time = perform_transaction(
                 address, txn_plan)
-            db_size, key_count = calculate_all_db_key_value_sizes()
 
             # there may be some transactions interleaved
             # so we only count the ones with the matching function name
@@ -124,7 +115,6 @@ def run_tests(bytecode, contract_plan):
 
         print('Ran {} iterations of {} function'.format(
             iterations, test_plan['test_name']))
-        # print('New database size: {:,} bytes'.format(measure_evm_data_size()))
         db_size, key_count = calculate_all_db_key_value_sizes()
         print('New database size: {:,} bytes'.format(
             db_size))
@@ -154,10 +144,6 @@ def run_benchmark(contract_plan):
     if os.path.isdir(evm_data_dir):
         shutil.rmtree(evm_data_dir)
 
-    before_deploy_function = contract_plan.get('before_deploy')
-    if before_deploy_function:
-        before_deploy_function()
-
     contract_path = os.path.join(
         contracts_dir, contract_plan['contract_filename'])
     bytecode = solc_compile_contract(
@@ -167,22 +153,6 @@ def run_benchmark(contract_plan):
         source_code_len = len(f.read())
         print('{} source size is:'.format(
             contract_plan['contract_name']), source_code_len)
-
-    # address = deploy_contract(bytecode, *contract_plan['constructor'])
-    # print('Contract deployed at:', address)
-    # print('Contract bytecode size: {:,} bytes'.format(
-    #     len(bytecode.encode('utf-8'))))
-    # print('Initial EVM database size: {:,} bytes'.format(
-    #     calculate_all_db_key_value_sizes()))
-
-    # after_deploy_function = contract_plan.get('after_deploy')
-    # if after_deploy_function:
-    #     print('Running after_deploy function')
-    #     after_deploy_function(address)
-
-    # populate_evm_state(address, contract_plan['transactions'])
-    # print('\nPopulated EVM database size: {:,} bytes\n'.format(
-    #     calculate_all_db_key_value_sizes()))
 
     run_tests(bytecode, contract_plan)
     db_size, key_count = calculate_all_db_key_value_sizes()

@@ -103,6 +103,8 @@ def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
     # pdb.set_trace()
 
     bytecode = create_deployment_bytecode(bytecode)
+    import pdb
+    pdb.set_trace()
 
     start = time.time()
     call_args = None
@@ -179,52 +181,3 @@ def get_current_root_hash():
     output = subprocess.check_output(command, stderr=devnull_file)
     match = re.search(b'Loading root hash (.*)', output)
     return match[1]
-
-
-def deploy_contract_with_name(path, name, *args):
-    contract_path = os.path.join(
-        contracts_dir, path)
-    bytecode = solc_compile_contract(
-        contract_path, name)
-    address = deploy_contract(bytecode, *args)
-    return address
-
-
-def deploy_etheremon_database_contract():
-    contract_path = os.path.join(
-        contracts_dir, 'etheremon-data.sol')
-    bytecode = solc_compile_contract(
-        contract_path, 'EtheremonDataBase')
-    address = deploy_contract(bytecode)
-    return address
-
-
-def deploy_token(iterations):
-    types = ('uint256', 'string', 'string')
-    args = (1000000, 'TEST', 'TEST')
-    token_address = deploy_contract_with_name(
-        'fungible-token.sol', 'ERC20', *(types, args))
-
-    print('Deployed token contract at', token_address)
-    print('Creating token transfers...')
-
-    # for iteration in range(iterations):
-    #     user_address = addresses[iteration]
-    #     transaction = {
-    #         'function': ContractFunction('transfer', ('address', 'uint256')),
-    #         'values': (user_address, 100),
-    #         'caller': SENDER_ADDRESS,
-    #     }
-    #     perform_transaction(token_address, transaction)
-
-    return token_address
-
-
-def approve_token_spend(token_address, spent_address, spender_address, amount):
-    types = ('address', 'uint256')
-    args = (spender_address, amount)
-    perform_transaction(token_address, {
-        'function': ContractFunction('approve', types),
-        'values': args,
-        'caller': spent_address
-    })

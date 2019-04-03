@@ -3,8 +3,7 @@ import random
 import utils
 from utils import ContractFunction, get_addresses, get_random_address,\
     get_random_number, addresses, SENDER_ADDRESS
-from evm_tools import deploy_etheremon_database_contract, deploy_token,\
-    perform_transaction, approve_token_spend
+from evm_tools import perform_transaction
 
 
 total_token_supply = 1000000 * 10**16
@@ -15,49 +14,6 @@ TEST_ITERATIONS = 100
 
 if len(sys.argv) > 2:
     TEST_ITERATIONS = int(sys.argv[2])
-
-CROWDFUNDING_GOAL = 100
-
-# each pledge must exceed the
-pledge_transactions = [
-    {
-        'function': ContractFunction('pledge', ('uint256',)),
-        'values': (CROWDFUNDING_GOAL+1,),
-        'caller': addr,
-        'amount': CROWDFUNDING_GOAL+1
-    }
-    for addr in addresses[:TEST_ITERATIONS]
-]
-claim_funds_transactions = [
-    {
-        'function': ContractFunction('claimFunds', ()),
-        'values': (),
-        'caller': SENDER_ADDRESS,
-    }
-    for iteration in range(TEST_ITERATIONS)
-]
-interleaved_transactions = pledge_transactions + claim_funds_transactions
-interleaved_transactions[::2] = pledge_transactions
-interleaved_transactions[1::2] = claim_funds_transactions
-
-
-token_address = None
-token_spend_amount = 100
-
-
-def deploy_token_before_exchange():
-    global token_address
-    token_address = deploy_token(TEST_ITERATIONS)
-    return token_address
-
-
-def get_token_address(spent_address):
-
-    def inner(spender_address):
-        approve_token_spend(token_address, spent_address,
-                            spender_address, token_spend_amount)
-        return token_address
-    return inner
 
 
 print('Using {:,} state entries'.format(TRANSACTION_LIMIT))
@@ -273,86 +229,5 @@ contracts_benchmark_plans = [
             },
         ]
     },
-
-    # {
-    #     'contract_filename': 'idex.sol',
-    #     'contract_name': 'Exchange',
-    #     'constructor': (
-    #         ('address',),
-    #         (SENDER_ADDRESS,)
-    #     ),
-    #     'before_deploy': deploy_token_before_exchange,
-    #     'transactions': [
-    #         # {
-    #         #     'function': ContractFunction(
-    #         #         'deposit', ()
-    #         #     ),
-    #         #     'values': (),
-    #         #     'amount': 100,
-    #         #     'caller': addr
-    #         # }
-    #         # for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
-    #         {
-    #             'function': ContractFunction(
-    #                 'depositToken', ('address', 'uint256')
-    #             ),
-    #             'values': (get_token_address(addr), token_spend_amount),
-    #             'caller': addr
-    #         }
-    #         for addr in addresses[:TRANSACTION_LIMIT]
-    #     ],
-    #     'tests': [
-    #         # {
-    #         #     'test_name': 'deposit',
-    #         #     'transactions': [
-    #         #         {
-    #         #             'function': ContractFunction(
-    #         #                 'deposit', ()
-    #         #             ),
-    #         #             'values': (),
-    #         #             'amount': 100,
-    #         #             'caller': addr
-    #         #         }
-    #         #         for addr in random.choices(addresses, k=TEST_ITERATIONS)
-    #         #     ]
-    #         # },
-    #         # {
-    #         #     'test_name': 'depositToken',
-    #         #     'transactions': [
-    #         #         {
-    #         #             'function': ContractFunction(
-    #         #                 'depositToken', ()
-    #         #             ),
-    #         #             'values': (),
-    #         #             'amount': 100,
-    #         #             'caller': addr
-    #         #         }
-    #         #         for addr in random.choices(addresses, k=TEST_ITERATIONS)
-    #         #     ]
-    #         # },
-    #         # {
-    #         #     'test_name': 'trade',
-    #         #     'transactions': [
-    #         #         {
-    #         #             'function': ContractFunction(
-    #         #                 'trade',
-    #         #                 ('uint256[8]', 'address[4]',
-    #         #                  'uint8[2]', 'bytes32[4]')
-    #         #             ),
-    #         #             'values': (
-    #         #                 [11, 11, 1000, 1, 10, 1, 10, 10],
-    #         #                 [get_token_address, get_token_address,
-    #         #                  SENDER_ADDRESS, SENDER_ADDRESS],
-    #         #                 [1, 1],
-    #         #                 [b'as', b'as', b'ab', b'ac']
-    #         #             ),
-    #         #             'caller': SENDER_ADDRESS
-    #         #         }
-    #         #         for index, addr in enumerate(addresses[:TRANSACTION_LIMIT])
-    #         #     ],
-    #         # }
-    #     ]
-    # },
-
 
 ]
