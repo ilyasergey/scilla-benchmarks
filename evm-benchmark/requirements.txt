@@ -8,9 +8,9 @@ parsimonious==0.8.1
 plyvel==1.0.5
 pycryptodome==3.7.2
 pycurl==7.43.0
-pygobject==3.20.0
 pysha3==1.0.2
-python-apt==1.1.0b1+ubuntu0.16.4.2
+# python-apt==0.7.8
 rlp==0.4.4
 six==1.12.0
-toolz==0.9.0
+# toolz==0.9.0
+# pygobject==3.32.2

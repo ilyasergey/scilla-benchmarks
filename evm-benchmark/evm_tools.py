@@ -99,12 +99,8 @@ def deploy_contract(bytecode, *constructor_args, dirname=evm_data_dir):
         arg_values = generate_params(arg_values)
         bytecode += encode_args(arg_types, arg_values)
     print('Encoding params', time.time()-start)
-    # import pdb
-    # pdb.set_trace()
 
     bytecode = create_deployment_bytecode(bytecode)
-    import pdb
-    pdb.set_trace()
 
     start = time.time()
     call_args = None

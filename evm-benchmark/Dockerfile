@@ -14,7 +14,7 @@ RUN \
   curl https://bootstrap.pypa.io/get-pip.py | python3.6
 
 RUN \
-  apt-get -y install libsnappy-dev wget
+  apt-get -y install libsnappy-dev wget python-apt
 
 ENV LEVELDB_VER="1.20"
 
@@ -49,4 +49,4 @@ ADD requirements.txt /code/
 RUN pip install -r requirements.txt
 ADD . /code/
 
-ENTRYPOINT ["python3.6", "/code/evm-benchmark/evm_benchmark.py"]
+ENTRYPOINT ["python3.6", "evm_benchmark.py"]
