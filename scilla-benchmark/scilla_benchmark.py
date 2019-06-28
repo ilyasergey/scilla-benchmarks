@@ -58,80 +58,25 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
                '-o', output_filepath, '-i', contract_path, '-libdir', std_lib,
                '-gaslimit', '100000000', '-disable-pp-json', '-disable-validate-json']
     output = subprocess.check_output(command)
-    # print(output.decode('utf-8'))
-    # output = subprocess.call(command)
-    all_time_match = re.search(b'time:(.*)', output)
-    output_state_match = re.search(b'output_state_json:(.*)', output)
-    mapvalues = [float(i)*1000 for i in re.compile(
-        'map:(.*)').findall(output.decode('utf-8'))]
-    kjson = re.compile('kjson:(.*)').findall(output.decode('utf-8'))
-    kjson = [float(i)*1000 for i in kjson]
-    vjson = re.compile('vjson:(.*)').findall(output.decode('utf-8'))
-    vjson = [float(i)*1000 for i in vjson]
-    # print(vjson)
-    frequencies = dict(zip(Counter(vjson).keys(), Counter(vjson).values()))
-    kvjson = re.compile('kvjson:(.*)').findall(output.decode('utf-8'))
-    kvjson = [float(i)*1000 for i in kvjson]
-    fold = [float(i)
-            for i in re.compile('fold:(.*)').findall(output.decode('utf-8'))]
-    call_count = [int(i)
-                  for i in re.compile('called:(.*)').findall(output.decode('utf-8'))]
-    fold_compare = [float(i)*1000
-                    for i in re.compile('fold_compare:(.*)').findall(output.decode('utf-8'))]
-    # infold = [float(i)*1000
-    #           for i in re.compile('in-fold:(.*)').findall(output.decode('utf-8'))]
-    concat = [float(i)*1000
-              for i in re.compile('concat:(.*)').findall(output.decode('utf-8'))]
-    # print('In scilla runner:')
-    init_res = float(re.search(b'init_res:(.*)', output)[1])*1000
-    cstate = float(re.search(b'cstate:(.*)', output)[1])*1000
-    step_result = float(re.search(b'step_result:(.*)', output)[1])*1000
-    exec_step = float(re.search(b'exec:(.*)', output)[1])*1000
+
+    # time taken to parse JSON into state map
+    init_time = float(re.search(b'init:(.*)', output)[1])*1000
+
+    # time taken to actually execute Scilla code
+    exec_time = float(re.search(b'exec:(.*)', output)[1])*1000
+
+    # time taken to serialize Scilla types into JSON types
     osj = float(re.search(b'output_state_json:(.*)', output)[1])*1000
     omj = float(re.search(b'output_message_json:(.*)', output)[1])*1000
     oej = float(re.search(b'output_event_json:(.*)', output)[1])*1000
-    write_to_file = float(re.search(b'write_to_file:(.*)', output)[1])*1000
-    all_time_taken = float(all_time_match[1]) * 1000
-    output_state_time_taken = float(output_state_match[1]) * 1000
-    all_without_osj = all_time_taken - output_state_time_taken
+    serialize_time = osj + omj + oej
 
-    # print('all time:'.ljust(8), '{0:.6} ms'.format(all_time_taken))
-    # print('init_res:'.ljust(8), '{0:.6} ms'.format(init_res))
-    # print('cstate:'.ljust(8), '{0:.6} ms'.format(cstate))
-    # print('step_result:'.ljust(8), '{0:.6} ms'.format(step_result))
-    # print('exec_step:'.ljust(8), '{0:.6} ms'.format(exec_step))
-    # print('osj:'.ljust(8), '{0:.6} ms'.format(osj))
-    # print('omj:'.ljust(8), '{0:.6} ms'.format(omj))
-    # print('oej:'.ljust(8), '{0:.6} ms'.format(oej))
+    # time taken to write JSON to a file
+    write_time = float(re.search(b'write_to_file:(.*)', output)[1])*1000
 
-    # strlit = int(re.search(b'string:(.*)', output)[1])
-    # bnumlit = int(re.search(b'bnum:(.*)', output)[1])
-    # bystrlit = int(re.search(b'bystr:(.*)', output)[1])
-    # bystrxlit = float(re.search(b'bystrx:(.*)', output)[1])*1000
-    # intlit = int(re.search(b'int:(.*)', output)[1])
-    # uintlit = float(re.search(b'uint:(.*)', output)[1])*1000
-    # print('strlit:'.ljust(8), '{} times'.format(strlit))
-    # print('bnumlit:'.ljust(8), '{} times'.format(bnumlit))
-    # print('bystrlit:'.ljust(8), '{} times'.format(bystrlit))
-    # print('bystrxlit:'.ljust(8), '{0:.6} ms'.format(bystrxlit))
-    # print('intlit:'.ljust(8), '{} times'.format(intlit))
-    # print('uintlit:'.ljust(8), '{0:.6} ms'.format(uintlit))
+    all_time_taken = init_time + exec_time + serialize_time + write_time
 
-    # print()
-    # print('In map:')
-    # print('map:'.ljust(8), '{0:.6} ms'.format(sum(mapvalues)))
-    # print('kjson:'.ljust(8), '{0:.6} ms'.format(sum(kjson)))
-    # print('vjson:'.ljust(8), '{0:.6} ms'.format(sum(vjson)))
-    # print('kvjson:'.ljust(8), '{0:.6} ms'.format(sum(kvjson)))
-    # # # print('in-fold:'.ljust(8), '{0:.6} ms'.format(sum(infold)))
-    # print('fold:'.ljust(8), '{0:.6} ms'.format(sum(fold)))
-    # print(fold)
-    # # print('fold_compare:'.ljust(8), '{0:.6} ms'.format(sum(fold_compare)))
-    # print('concat:'.ljust(8), '{0:.6} ms'.format(sum(concat)))
-    # print('called:'.ljust(8), '{} times'.format(sum(call_count)))
-    return all_time_taken, output_state_time_taken, all_without_osj,\
-        sum(kjson), sum(vjson), sum(fold), sum(concat), sum(kvjson), \
-        write_to_file
+    return all_time_taken, init_time, exec_time, serialize_time, write_time
 
 
 def run_benchmark(no_of_state_entries, iterations=100):
@@ -144,16 +89,12 @@ def run_benchmark(no_of_state_entries, iterations=100):
         create_state_file(contract_name, contract_plan['state'])
 
         for test_plan in test_plans:
-            execution_times = []
-            output_state_times = []
-            percentage = []
-            kjson_times = []
-            vjson_times = []
-            kvjson_times = []
-            fold_times = []
-            concat_times = []
-            without_osj_times = []
-            write_file_times = []
+            init_times = []
+            exec_times = []
+            serialize_times = []
+            write_times = []
+            total_times = []
+
             test_name = test_plan['test_name']
             transactions = test_plan['transactions']
             blockchain_filename = test_plan.get('blockchain')
@@ -179,65 +120,36 @@ def run_benchmark(no_of_state_entries, iterations=100):
             for iteration, transaction in enumerate(transactions):
                 if iteration % 10 == 0:
                     print('Ran {} iterations'.format(iteration))
-                all_time_taken, output_state_time, all_without_osj,\
-                    kjson, vjson, fold, concat, kvjson, \
-                    write_file_time = run_test(
-                        contract_name, transaction, blockchain_json=bjson)
-                execution_times.append(all_time_taken)
-                output_state_times.append(output_state_time)
-                without_osj_times.append(all_without_osj)
-                kjson_times.append(kjson)
-                vjson_times.append(vjson)
-                concat_times.append(concat)
-                kvjson_times.append(kvjson)
-                fold_times.append(fold)
-                write_file_times.append(write_file_time)
 
-            # kjson_percent = [(kjson_times[i]/fold_times[i])
-            #                  * 100 for i in range(len(kjson_times))]
-            # vjson_percent = [(vjson_times[i]/fold_times[i])
-            #                  * 100 for i in range(len(vjson_times))]
-            # kvjson_percent = [(kvjson_times[i]/fold_times[i])
-            #                   * 100 for i in range(len(kvjson_times))]
-            # concat_percent = [(concat_times[i]/fold_times[i])
-            #                   * 100 for i in range(len(concat_times))]
-            fold_percent = [(fold_times[i]/execution_times[i])
-                            * 100 for i in range(len(fold_times))]
+                all_time_taken, init_time, exec_time, \
+                    serialize_time, write_time = run_test(
+                        contract_name, transaction, blockchain_json=bjson
+                    )
+
+                init_times.append(init_time)
+                exec_times.append(exec_time)
+                serialize_times.append(serialize_time)
+                write_times.append(write_time)
+                total_times.append(all_time_taken)
 
             print('Using {:,} state entries in {} contract'.format(
                 no_of_state_entries, contract_name))
             print('Ran {} iterations of `{}` function'.format(
                 iterations, test_name))
-            print('Minor collections:', median(minor_collections))
-            print('Major collections:', median(major_collections))
             # print('New database size: {:,} bytes'.format(
             #     calculate_all_db_key_value_sizes()))
-            print('Median execution time: {0:.6f} ms'.format(
-                median(execution_times)))
-            print('Mean execution time: {0:.6f} ms'.format(
-                mean(execution_times)))
-            print('    Median execution without output state time: {0:.6f} ms'.format(
-                median(without_osj_times)))
-            print('    Median output state JSON time: {0:.6f} ms'.format(
-                median(output_state_times)))
-            print('    Median IO time: {0:.6f} ms'.format(
-                median(write_file_times)))
-            # print('Median kjson: {0:.6f} ms'.format(
-            #     median(kjson_times)))
-            # print('Median vjson: {0:.6f} ms'.format(
-            #     median(vjson_times)))
-            # print('        Median fold as %: {0:.6f}'.format(
-            #     median(fold_percent)))
-            # print('            Median kjson as %: {0:.6f}'.format(
-            #     median(kjson_percent)))
-            # print('            Median vjson as %: {0:.6f}'.format(
-            #     median(vjson_percent)))
-            # print('            Median kvjson as %: {0:.6f}'.format(
-            #     median(kvjson_percent)))
-            # print('            Median concat as %: {0:.6f}'.format(
-            #     median(concat_percent)))
-            # print('Median fold: {0:.6f} ms'.format(
-            #     median(fold_times)))
+            print('Median total time: {0:.6f} ms'.format(
+                median(total_times)))
+            # print('Mean execution time: {0:.6f} ms'.format(
+            #     mean(exec_times)))
+            print('    Median init time: {0:.6f} ms'.format(
+                median(init_times)))
+            print('    Median exec time: {0:.6f} ms'.format(
+                median(exec_times)))
+            print('    Median serialize time: {0:.6f} ms'.format(
+                median(serialize_times)))
+            print('    Median write time: {0:.6f} ms'.format(
+                median(write_times)))
             print()
 
 

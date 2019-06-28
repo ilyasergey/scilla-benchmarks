@@ -48,3 +48,5 @@ WORKDIR /code/
 ADD requirements.txt /code/
 RUN pip install -r requirements.txt
 ADD . /code/
+
+ENTRYPOINT ["python3.6", "/code/evm-benchmark/evm_benchmark.py"]

@@ -34,7 +34,7 @@ RUN \
   curl https://bootstrap.pypa.io/get-pip.py | python3.6
 
 RUN \
-  git clone https://github.com/kenchangh/scilla /home/scilla
+  git clone https://github.com/AmritKumar/scilla /home/scilla
 
 WORKDIR /home/scilla
 
@@ -49,13 +49,6 @@ ADD requirements.txt /code/
 RUN pip install -r requirements.txt
 ADD . /code/
 
-#RUN \
-#  git clone https://github.com/Zilliqa/kaya /home/kaya
-#
-#WORKDIR /home/kaya
-#RUN npm install
-#
-#WORKDIR /code/scilla-benchmark/zil-twitter/oracle
-#RUN npm install
-#
-#WORKDIR /code
+RUN mkdir output
+
+ENTRYPOINT ["python3.6", "scilla_benchmark.py"]
