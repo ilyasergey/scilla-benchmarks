@@ -1,6 +1,6 @@
 # zilliqa-benchmarks
 
-This repository is used to benchmark the execution performance (without IO) of Scilla against EVM.
+This repository contains the benchmarking suite for testing the performance of Scilla against EVM.
 
 ## Installation
 
