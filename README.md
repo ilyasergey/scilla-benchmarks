@@ -19,10 +19,10 @@ Next, you can start running the benchmarks for either Scilla or EVM. The paramet
 # docker run -it zilliqa-benchmarks_<interpreter>-benchmark <number_of_state_entries> <test_iterations>
 
 # for Scilla
-docker run -it zilliqa-benchmarks_scilla-benchmark 10000 10
+docker run -it scilla-benchmarks_scilla-benchmark 10000 10
 
 # for EVM
-docker run -it zilliqa-benchmarks_evm-benchmark 10000 10
+docker run -it scilla-benchmarks_evm-benchmark 10000 10
 ```
 
 ## Interpreting Scilla test results
