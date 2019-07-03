@@ -1,4 +1,4 @@
-# Scilla-benchmarks
+# Scilla Benchmarks
 
 This repository contains the benchmarking suite for testing the performance of Scilla against EVM.
 
