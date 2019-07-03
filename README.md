@@ -1,10 +1,11 @@
-# zilliqa-benchmarks
+# Scilla Benchmarks
 
 This repository contains the benchmarking suite for testing the performance of Scilla against EVM.
 
 ## Installation
 
-To run the benchmarks, you must have [docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/install/) installed.
+To run the benchmarks, you must have [docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/install/) installed. It is suggested to use `pip install docker-compose`
+to install `docker-compose`.
 
 In the root directory, run the `build` command to build the images:
 
