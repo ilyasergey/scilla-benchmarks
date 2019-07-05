@@ -53,30 +53,30 @@ def get_benchmark_plans(state_entries, test_iterations):
                             state_entries:state_entries+test_iterations]
                     ]
                 },
-                {
-                    'test_name': 'Approve',
-                    'transactions': [
-                        {
-                            'transition': 'Approve',
-                            'amount': '0',
-                            'sender': SENDER_ADDRESS,
-                            'params': [
-                                {
-                                    'vname': 'spender',
-                                    'type': 'ByStr20',
-                                    'value': addr
-                                },
-                                {
-                                    'vname': 'tokens',
-                                    'type': 'Uint128',
-                                    'value': '1000'
-                                },
-                            ],
-                        }
-                        for addr in addresses[
-                            state_entries:state_entries+test_iterations]
-                    ]
-                }
+                # {
+                #     'test_name': 'Approve',
+                #     'transactions': [
+                #         {
+                #             'transition': 'Approve',
+                #             'amount': '0',
+                #             'sender': SENDER_ADDRESS,
+                #             'params': [
+                #                 {
+                #                     'vname': 'spender',
+                #                     'type': 'ByStr20',
+                #                     'value': addr
+                #                 },
+                #                 {
+                #                     'vname': 'tokens',
+                #                     'type': 'Uint128',
+                #                     'value': '1000'
+                #                 },
+                #             ],
+                #         }
+                #         for addr in addresses[
+                #             state_entries:state_entries+test_iterations]
+                #     ]
+                # }
             ]
         },
 
@@ -102,30 +102,30 @@ def get_benchmark_plans(state_entries, test_iterations):
                 }
             ],
             'tests': [
-                {
-                    'test_name': 'approve',
-                    'transactions': [
-                        {
-                            'transition': 'approve',
-                            'amount': '0',
-                            'sender': SENDER_ADDRESS,
+                # {
+                #     'test_name': 'approve',
+                #     'transactions': [
+                #         {
+                #             'transition': 'approve',
+                #             'amount': '0',
+                #             'sender': SENDER_ADDRESS,
 
-                            'params': [
-                                {
-                                    'vname': 'to',
-                                    'type': 'ByStr20',
-                                    'value': addr,
-                                },
-                                {
-                                    'vname': 'tokenId',
-                                    'type': 'Uint256',
-                                    'value': str(index),
-                                },
-                            ]
-                        }
-                        for index, addr in enumerate(addresses[:test_iterations])
-                    ]
-                },
+                #             'params': [
+                #                 {
+                #                     'vname': 'to',
+                #                     'type': 'ByStr20',
+                #                     'value': addr,
+                #                 },
+                #                 {
+                #                     'vname': 'tokenId',
+                #                     'type': 'Uint256',
+                #                     'value': str(index),
+                #                 },
+                #             ]
+                #         }
+                #         for index, addr in enumerate(addresses[:test_iterations])
+                #     ]
+                # },
                 {
                     'test_name': 'setApprovalForAll',
                     'transactions': [
@@ -205,18 +205,18 @@ def get_benchmark_plans(state_entries, test_iterations):
                         for addr in addresses[:test_iterations]
                     ]
                 },
-                {
-                    'test_name': 'Withdraw',
-                    'transactions': [
-                        {
-                            'transition': 'Withdraw',
-                            'amount': '0',
-                            'sender': addr,
-                            'params': []
-                        }
-                        for addr in addresses[:test_iterations]
-                    ]
-                },
+                # {
+                #     'test_name': 'Withdraw',
+                #     'transactions': [
+                #         {
+                #             'transition': 'Withdraw',
+                #             'amount': '0',
+                #             'sender': addr,
+                #             'params': []
+                #         }
+                #         for addr in addresses[:test_iterations]
+                #     ]
+                # },
 
             ]
         },
@@ -260,19 +260,19 @@ def get_benchmark_plans(state_entries, test_iterations):
                         for addr in addresses[:test_iterations]
                     ]
                 },
-                {
-                    'test_name': 'GetFunds',
-                    'blockchain': 'blockchain-getfunds.json',
-                    'transactions': [
-                        {
-                            'transition': 'GetFunds',
-                            'amount': '0',
-                            'sender': SENDER_ADDRESS,
-                            'params': []
-                        }
-                        for addr in addresses[:test_iterations]
-                    ]
-                },
+                # {
+                #     'test_name': 'GetFunds',
+                #     'blockchain': 'blockchain-getfunds.json',
+                #     'transactions': [
+                #         {
+                #             'transition': 'GetFunds',
+                #             'amount': '0',
+                #             'sender': SENDER_ADDRESS,
+                #             'params': []
+                #         }
+                #         for addr in addresses[:test_iterations]
+                #     ]
+                # },
             ]
         }
     ]

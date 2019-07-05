@@ -50,18 +50,18 @@ contracts_benchmark_plans = [
                     for iteration in range(TEST_ITERATIONS)
                 ]
             },
-            {
-                'test_name': 'approve',
-                'transactions': [
-                    {
-                        'function': ContractFunction(
-                            'approve', ('address', 'uint256')),
-                        'caller': SENDER_ADDRESS,
-                        'values': (get_random_address, get_random_number),
-                    }
-                    for iteration in range(TEST_ITERATIONS)
-                ]
-            }
+            # {
+            #     'test_name': 'approve',
+            #     'transactions': [
+            #         {
+            #             'function': ContractFunction(
+            #                 'approve', ('address', 'uint256')),
+            #             'caller': SENDER_ADDRESS,
+            #             'values': (get_random_address, get_random_number),
+            #         }
+            #         for iteration in range(TEST_ITERATIONS)
+            #     ]
+            # }
 
         ]
     },
@@ -96,18 +96,18 @@ contracts_benchmark_plans = [
                     for iteration in range(TEST_ITERATIONS)
                 ]
             },
-            {
-                'test_name': 'safeTransferFrom',
-                'transactions': [
-                    {
-                        'function': ContractFunction(
-                            'safeTransferFrom', ('address', 'address', 'uint256')),
-                        'values': (SENDER_ADDRESS, get_random_address, utils.get_random_token_id),
-                        'caller': SENDER_ADDRESS,
-                    }
-                    for iteration in range(TEST_ITERATIONS)
-                ]
-            },
+            # {
+            #     'test_name': 'safeTransferFrom',
+            #     'transactions': [
+            #         {
+            #             'function': ContractFunction(
+            #                 'safeTransferFrom', ('address', 'address', 'uint256')),
+            #             'values': (SENDER_ADDRESS, get_random_address, utils.get_random_token_id),
+            #             'caller': SENDER_ADDRESS,
+            #         }
+            #         for iteration in range(TEST_ITERATIONS)
+            #     ]
+            # },
             # {
             #     'test_name': 'approve',
             #     'transactions': [
@@ -158,17 +158,17 @@ contracts_benchmark_plans = [
                 ]
             },
 
-            {
-                'test_name': 'withdraw',
-                'transactions': [
-                    {
-                        'function': ContractFunction('withdraw', ()),
-                        'values': (),
-                        'caller': addr,
-                    }
-                    for index, addr in enumerate(addresses[:TEST_ITERATIONS])
-                ]
-            },
+            # {
+            #     'test_name': 'withdraw',
+            #     'transactions': [
+            #         {
+            #             'function': ContractFunction('withdraw', ()),
+            #             'values': (),
+            #             'caller': addr,
+            #         }
+            #         for index, addr in enumerate(addresses[:TEST_ITERATIONS])
+            #     ]
+            # },
         ]
     },
 
@@ -215,18 +215,18 @@ contracts_benchmark_plans = [
             #     ]
             # },
 
-            {
-                'test_name': 'getRefund',
-                'transactions': [
-                    {
-                        'function': ContractFunction('getRefund', ()),
-                        'values': (),
-                        'caller': addr,
-                        'time': 9547698860
-                    }
-                    for addr in addresses[:TEST_ITERATIONS]
-                ]
-            },
+            # {
+            #     'test_name': 'getRefund',
+            #     'transactions': [
+            #         {
+            #             'function': ContractFunction('getRefund', ()),
+            #             'values': (),
+            #             'caller': addr,
+            #             'time': 9547698860
+            #         }
+            #         for addr in addresses[:TEST_ITERATIONS]
+            #     ]
+            # },
         ]
     },
 
