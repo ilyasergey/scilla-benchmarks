@@ -50,7 +50,7 @@ In the prior rounds of testing when the paper was written, the number of test it
 The results may be slightly different from what was written in the paper, due to the lack of averaging.
 
 ```
-python results.py <command>
+python3 results.py <command>
 ```
 
 ---
@@ -64,7 +64,7 @@ The contract transitions tested were `ft-transfer` (Fungible Token transfer), `n
 The table generated reflects Table 3 (breakdown of contract run-times) and the bar chart reflects the Figure 11(a) in the paper.
 
 ```
-python results.py breakdown
+python3 results.py breakdown
 ```
 
 ---
@@ -78,7 +78,7 @@ The 4 contract transitions,`ft-transfer`, `nft-setApprovalForAll`, `auc-bid`, `c
 The bar chart generated reflects the Figure 11(b) of the comparison between Scilla/EVM execution times.
 
 ```
-python results.py exec
+python3 results.py exec
 ```
 
 ---
@@ -90,5 +90,5 @@ The `size` command generates the code size comparison between Scilla, Solidity a
 The bar chart generated reflects the Figure 11(c) of the code size comparison.
 
 ```
-python results.py size
+python3 results.py size
 ```
