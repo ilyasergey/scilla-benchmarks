@@ -34,7 +34,7 @@ def run_scilla_vs_evm_exec():
     for interpreter in INTERPRETERS:
         interpreter_times[interpreter] = {}
 
-        interpreter_threads = [Thread(target=run_benchmark, args=(queue, interpreter, size, 10))
+        interpreter_threads = [Thread(target=run_benchmark, args=(queue, interpreter, size, 5))
                                for size in COMPARISON_STATE_SIZES]
         for thread in interpreter_threads:
             thread.start()
@@ -148,7 +148,7 @@ def transform_to_comparison_data(data):
 def run_breakdown():
     state_breakdown = {}
     queue = Queue()
-    threads = [Thread(target=run_benchmark, args=(queue, 'scilla', size, 10))
+    threads = [Thread(target=run_benchmark, args=(queue, 'scilla', size, 1))
                for size in STATE_SIZES]
 
     for thread in threads:

@@ -4,8 +4,15 @@ This repository contains the benchmarking suite for testing the performance of S
 
 ## Installation
 
-To run the benchmarks, you must have [docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/install/) installed. It is suggested to use `pip install docker-compose`
-to install `docker-compose`.
+In order to run the benchmarks, you must have the software listed below.
+
+1. Docker
+2. Docker Compose
+3. Python3
+4. Python PIP
+5. Virtualenv (Optional)
+
+It is suggested to use `pip install docker-compose` to install `docker-compose`.
 
 In the root directory, run the `build` command to build the images:
 
@@ -13,117 +20,57 @@ In the root directory, run the `build` command to build the images:
 docker-compose build
 ```
 
-Next, you can start running the benchmarks for either Scilla or EVM. The parameters are stated below.
+Next, you will have to install the Python dependencies with `pip`. In the root directory,
 
 ```
-# to run the benchmark
-# docker run -it zilliqa-benchmarks_<interpreter>-benchmark <number_of_state_entries> <test_iterations>
-
-# for Scilla
-docker run -it scilla-benchmarks_scilla-benchmark 10000 10
-
-# for EVM
-docker run -it scilla-benchmarks_evm-benchmark 10000 10
+pip install -r requirements.txt
 ```
 
-## Interpreting Scilla test results
-
-This is an example output from the Scilla benchmark.
+Optionally, you could use `virtualenv` to create a virtual Python environment to install the Python dependencies.
 
 ```
-Using 10 state entries...
-Running 10 iterations of `Transfer` function
-Ran 0 iterations
-Using 10 state entries in fungible-token contract
-Ran 10 iterations of `Transfer` function
-Median total time: 0.687500 ms
-    Median init time: 0.541000 ms
-    Median exec time: 0.067500 ms
-    Median serialize time: 0.048000 ms
-    Median write time: 0.028000 ms
+# create the virtualenv
+virtualenv -p python3 venv
+
+# activate the virtualenv
+source venv/bin/activate
+
+# install with venv's pip
+pip install -r requirements.txt
 ```
 
-Init time refers to the time taken for the JSON state file to be parsed as Ocaml JSON types.
+## Producing the results
 
-Exec time refers to the time taken for the interpreter to execute the Scilla source code.
+To produce the benchmark results, a Python script is used to create Docker containers, run tests and parse the test results. The script file is `results.py`.
 
-Serialize time refers to the time taken to convert Scilla data types into JSON data types.
-
-Write time refers to the time taken to write the JSON files to disk after everything is done.
-
-## Interpreting EVM test results
-
-This is an example output from the EVM benchmark. The output is a bit verbose.
+The script file is executed as below, where `command` could be `breakdown`, `exec` or `size`.
 
 ```
-Using 10 state entries
-Compiler run successful. Artifact(s) can be found in directory /code/output.
-Compiled ERC20 to /code/output/ERC20.bin
-ERC20 source size is: 6696
-Running 10 iterations of `transfer` function
-Encoding params 0.005234479904174805
-Write bytecode to file 1.6689300537109375e-05
-VM STAT 0 OPs
-Deploy to EVM 0.3471808433532715
-Contract deployed at: 0x8FDB05EC41FD46A4EE55A019A9D80171424890A3
-Contract bytecode size: 4,214 bytes
-Initial EVM database size: 3,325 bytes
-Ran 10 iterations
-Ran 10 iterations of transfer function
-New database size: 3,584 bytes
-Median execution time: 0.337750 ms
-Mean execution time: 0.444220 ms
-Median init time: 299.500000 ms
-Median IO time: 0.000000 ms
+python results.py <command>
 ```
 
-First, you can see the compiled contract bytecode size in `Contract bytecode size`.
+The `breakdown` command generates the relative time breakdown of execution of Scilla smart contracts. This breaks down a Scilla contract execution into multiple phases, `init`, `exec`, `serialize` and `write`.
 
-Init time refers to the time taken to create a new EVM environment and load the state database.
+The contract functions tested were `ft-transfer` (Fungible Token transfer), `nft-setApprovalForAll` (Non Fungible Token setApprovalForAll), `auc-bid` (Auction bid), `cfd-pledge` (Crowdfunding pledge).
 
-Execution time refers to the time taken to execute all the opcodes in the bytecode.
-
-IO time refers to the time taken to commit the changes to the state database.
-
-EVM does not have an equivalent of Serialize time (as in Scilla) as they do not need to serialize into JSON strings.
-
-## Choosing tests
-
-Currently, choosing which contracts and tests to run is manual. The benchmarking suite defaults to running all contracts and all functions. You may uncomment the files in `evm-benchmark/benchmark_plans.py` and `scilla-benchmark/benchmark_plans.py`.
-
-Below is an example contract being tested. If you want to remove the contract from the benchmark, you can comment it out completely. Or, you can comment out the individual tests of the functions in the `tests` property.
+The table generated reflects Table 3 (breakdown of contract run-times) and the bar chart reflects the Figure 11(a) in the paper.
 
 ```
-{
-            'contract': 'fungible-token',
-            'state':  [
-                ....
-            ],
-            'tests': [
-                {
-                    'test_name': 'Transfer',
-                    'transactions': [
-                        {
-                            'transition': 'Transfer',
-                            'amount': '0',
-                            'sender': SENDER_ADDRESS,
-                            'params': [
-                                {
-                                    'vname': 'to',
-                                    'type': 'ByStr20',
-                                    'value': '0x44345678901234567890123456789012345678cd'
-                                },
-                                {
-                                    'vname': 'tokens',
-                                    'type': 'Uint128',
-                                    'value': '1000'
-                                },
-                            ],
-                        }
-                        for addr in addresses[
-                            state_entries:state_entries+test_iterations]
-                    ]
-                }
-            ]
-        },
+python results.py breakdown
+```
+
+The `exec` command generates the execution time of Scilla and EVM on (excluding phases like `init`, `serialize` and `write`).
+
+The bar chart generated reflects the Figure 11(b) of the comparison between Scilla/EVM execution times.
+
+```
+python results.py exec
+```
+
+The `size` command generates the code size comparison between Scilla, Solidity and EVM bytecode.
+
+The bar chart generated reflects the Figure 11(c) of the code size comparison.
+
+```
+python results.py size
 ```
