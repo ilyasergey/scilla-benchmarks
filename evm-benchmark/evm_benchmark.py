@@ -92,7 +92,7 @@ def run_tests(bytecode, contract_plan):
                 address = reset_contract(new_contract=False)
                 if iteration_counter == 0:
                     print('Contract deployed at:', address)
-                    print('Contract bytecode size: {:,} bytes'.format(
+                    print('Contract bytecode size: {} bytes'.format(
                         len(bytecode.encode('utf-8'))))
                     # print('Total gas cost:', measure_gas_cost(bytecode))
                     db_size, key_count = calculate_all_db_key_value_sizes()

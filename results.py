@@ -3,9 +3,10 @@ import uuid
 from threading import Thread
 from queue import Queue
 import subprocess
-from charts import plot_relative_time, plot_comparison_bar_chart
+from charts import plot_relative_time, plot_comparison_bar_chart,\
+    plot_compare_sizes
 from common import STATE_SIZES, TIME_NAMES, FUNCTION_NAMES,\
-    COMPARISON_STATE_SIZES, INTERPRETERS
+    COMPARISON_STATE_SIZES, INTERPRETERS, CONTRACTS, CONTRACT_SIZE_NAMES
 
 
 def run_benchmark(queue, interpreter, state_size, iterations):
@@ -20,8 +21,8 @@ def run_benchmark(queue, interpreter, state_size, iterations):
     # make the terminal less janky
     subprocess.call(['stty', 'sane'])
 
-    print('Completed benchmark for state size of {:,} with {} iterations'.format(
-        state_size, iterations))
+    print('Completed {} benchmark for state size of {:,} with {} iterations'.format(
+        interpreter, state_size, iterations))
 
 
 def run_scilla_vs_evm_exec():
@@ -49,6 +50,69 @@ def run_scilla_vs_evm_exec():
 
     plot_data = transform_to_comparison_data(interpreter_times)
     plot_comparison_bar_chart(plot_data)
+
+
+def run_size_comparison():
+    queue = Queue()
+    threads = []
+    interpreter_sizes = {}
+
+    for interpreter in INTERPRETERS:
+        thread = Thread(target=run_benchmark, args=(queue, interpreter, 1, 1))
+        threads.append(thread)
+
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    outputs = tuple(queue.queue)
+
+    for parse_output in outputs:
+        interpreter, _, output = parse_output
+
+        if interpreter == 'scilla':
+            sizes = parse_contract_size(interpreter, output)
+            interpreter_sizes[interpreter] = sizes
+        elif interpreter == 'evm':
+            sol_sizes = parse_contract_size('evm-sol', output)
+            bytecode_sizes = parse_contract_size('evm-bytecode', output)
+            interpreter_sizes['evm-sol'] = sol_sizes
+            interpreter_sizes['evm-bytecode'] = bytecode_sizes
+
+    plot_data = transform_to_compare_size(interpreter_sizes)
+    plot_compare_sizes(plot_data)
+
+
+def parse_contract_size(interpreter, output):
+    re_pattern = None
+    if interpreter == 'scilla':
+        re_pattern = 'Contract size: (\\d*) bytes'
+    elif interpreter == 'evm-sol':
+        re_pattern = 'source size is: (\\d*)'
+    elif interpreter == 'evm-bytecode':
+        re_pattern = 'Contract bytecode size: (\\d*) bytes'
+
+    matches = re.finditer(re_pattern, output.decode('utf-8'))
+    sizes = {}
+
+    for index, match in enumerate(matches):
+        contract_name = CONTRACTS[index]
+        size = int(match[1])
+        sizes[contract_name] = size
+    return sizes
+
+
+def transform_to_compare_size(data):
+    plot_data = []
+
+    for interpreter in CONTRACT_SIZE_NAMES:
+        size_data = []
+
+        for contract_name in CONTRACTS:
+            size_data.append(data[interpreter][contract_name])
+        plot_data.append(size_data)
+    return plot_data
 
 
 def parse_exec_times(interpreter, output):
@@ -219,4 +283,5 @@ def print_table_data(table_data):
 
 if __name__ == '__main__':
     # run_breakdown()
-    run_scilla_vs_evm_exec()
+    # run_scilla_vs_evm_exec()
+    run_size_comparison()

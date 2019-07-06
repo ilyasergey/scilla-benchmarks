@@ -53,6 +53,9 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     sender = transaction['sender']
     create_message_file(contract_name, tag, amount, sender, params)
 
+    src_size = os.path.getsize(contract_path)
+    print('Contract size: {} bytes'.format(src_size))
+
     command = [scilla_runner_exec, '-init', init_json, '-istate', state_json,
                '-iblockchain', blockchain_json, '-imessage', message_json,
                '-o', output_filepath, '-i', contract_path, '-libdir', std_lib,

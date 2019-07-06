@@ -82,6 +82,42 @@ def plot_comparison_bar_chart(plot_data):
     plt.show()
 
 
+def plot_compare_sizes(plot_data):
+    # data to plot
+    n_groups = 4
+    scilla_data, evm_sol_data, evm_bytecode_data = plot_data
+
+    # create plot
+    fig, ax = plt.subplots()
+    index = np.arange(n_groups)
+    bar_width = 0.15
+    opacity = 0.8
+
+    rects1 = plt.bar(index, scilla_data, bar_width,
+                     alpha=opacity,
+                     color='#D7191C',
+                     label='Scilla')
+
+    rects2 = plt.bar(index + bar_width, evm_sol_data, bar_width,
+                     alpha=opacity,
+                     color='#FDAE61',
+                     label='Solidity')
+
+    rects3 = plt.bar(index + bar_width*2, evm_bytecode_data, bar_width,
+                     alpha=opacity,
+                     color='#ABDDA4',
+                     label='EVM bytecode')
+
+    plt.ylabel('Size (bytes)')
+    plt.title('Code size comparison')
+    ticks = ('ft', 'nft', 'auc', 'cfd')
+    plt.xticks(index + bar_width, ticks)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == '__main__':
-    plot_comparison_bar_chart([[0.085, 0.053, 0.152, 2.692, 0.057, 0.244, 0.12, 12.228], [2.674945, 0.123893, 2.087535, 1.462808, 9.601753, 0.124816, 9.543271, 6.773828]]
-                              )
+    plot_compare_sizes([[4871, 12302, 5010, 4122], [
+                       6696, 6873, 4485, 1305], [4214, 5252, 2708, 1606]])
