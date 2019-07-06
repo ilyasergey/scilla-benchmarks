@@ -55,6 +55,8 @@ python results.py <command>
 
 ---
 
+### Relative time breakdown
+
 The `breakdown` command generates the relative time breakdown of execution of Scilla smart contracts. This breaks down a Scilla contract execution into multiple phases, `init`, `exec`, `serialize` and `write`.
 
 The contract transitions tested were `ft-transfer` (Fungible Token transfer), `nft-setApprovalForAll` (Non Fungible Token setApprovalForAll), `auc-bid` (Auction bid), `cfd-pledge` (Crowdfunding pledge).
@@ -67,6 +69,8 @@ python results.py breakdown
 
 ---
 
+### Scilla/EVM Execution time
+
 The `exec` command generates the execution time of Scilla and EVM on (excluding phases like `init`, `serialize` and `write`).
 
 The 4 contract transitions,`ft-transfer`, `nft-setApprovalForAll`, `auc-bid`, `cfd-pledge`, were tested with 10k and 50k state entries.
@@ -78,6 +82,8 @@ python results.py exec
 ```
 
 ---
+
+### Code size comparison
 
 The `size` command generates the code size comparison between Scilla, Solidity and EVM bytecode. The 4 major contracts `FungibleToken`, `NonFungibleToken`, `Auction` and `Crowdfunding` were used to measure the code size. These contracts were written both in Scilla and Solidity.
 

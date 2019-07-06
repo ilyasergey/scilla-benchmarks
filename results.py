@@ -30,6 +30,7 @@ def run_scilla_vs_evm_exec():
     queue = Queue()
     threads = []
     interpreter_times = {}
+    print('Running benchmarks on size 10k, 50k')
 
     for interpreter in INTERPRETERS:
         interpreter_times[interpreter] = {}
@@ -49,6 +50,7 @@ def run_scilla_vs_evm_exec():
         times = parse_exec_times(interpreter, output.decode('utf-8'))
         interpreter_times[interpreter][size] = times
 
+    print('\nShowing the bar chart...')
     plot_data = transform_to_comparison_data(interpreter_times)
     plot_comparison_bar_chart(plot_data)
 
@@ -57,6 +59,7 @@ def run_size_comparison():
     queue = Queue()
     threads = []
     interpreter_sizes = {}
+    print('Reading code sizes...')
 
     for interpreter in INTERPRETERS:
         thread = Thread(target=run_benchmark, args=(queue, interpreter, 1, 1))
@@ -81,6 +84,7 @@ def run_size_comparison():
             interpreter_sizes['evm-sol'] = sol_sizes
             interpreter_sizes['evm-bytecode'] = bytecode_sizes
 
+    print('\nShowing the bar chart...')
     plot_data = transform_to_compare_size(interpreter_sizes)
     plot_compare_sizes(plot_data)
 
