@@ -15,6 +15,10 @@ def run_scilla_benchmark(queue, state_size, iterations):
     output = subprocess.check_output(['docker', 'run', '--name', container_id,
                                       '-it', 'scilla-benchmarks_scilla-benchmark', state_size, iterations])
     queue.put(output)
+
+    # make the terminal less janky
+    subprocess.call(['stty', 'sane'])
+
     print('Completed benchmark for state size of {:,} with {} iterations'.format(
         int(state_size), iterations))
 
@@ -22,7 +26,7 @@ def run_scilla_benchmark(queue, state_size, iterations):
 def run_breakdown():
     state_breakdown = {}
     queue = Queue()
-    threads = [Thread(target=run_scilla_benchmark, args=(queue, size, 10))
+    threads = [Thread(target=run_scilla_benchmark, args=(queue, size, 1))
                for size in STATE_SIZES]
 
     for thread in threads:
@@ -32,9 +36,6 @@ def run_breakdown():
 
     for thread in threads:
         thread.join()
-
-    # make the terminal less janky
-    subprocess.call(['stty', 'sane'])
 
     outputs = tuple(queue.queue)
     results = [parse_output(output.decode('utf-8')) for output in outputs]
@@ -75,13 +76,13 @@ def parse_output(output):
 def transform_to_plot_data(data):
     plot_data = []
 
-    for size_index, size in enumerate(STATE_SIZES):
+    for size in STATE_SIZES:
         time_data = []
 
-        for time_index, time in enumerate(TIME_NAMES):
-
+        for time in TIME_NAMES:
             function_data = []
-            for function_index, function_name in enumerate(FUNCTION_NAMES):
+
+            for function_name in FUNCTION_NAMES:
                 function_data.append(data[size][function_name][time])
 
             time_data.append(function_data)
