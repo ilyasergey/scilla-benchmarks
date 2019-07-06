@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from common import STATE_SIZES, TIME_NAMES, FUNCTION_NAMES
 
 
-def plot_comparison_bar_chart():
+def plot_comparison_bar_chart(data):
     # data to plot
     n_groups = 4
     n_comparison = 3
@@ -21,6 +22,7 @@ def plot_comparison_bar_chart():
         distance = bar_width * comparison_index
 
         for color_index in range(len(colors)):
+            inner_data = data[comparison_index][color_index]
             color = colors[color_index]
             kwargs = {
                 'alpha': opacity,
@@ -28,22 +30,21 @@ def plot_comparison_bar_chart():
             }
 
             if color_index > 0:
-                bottom = np.array(data1)
-                for _ in range(color_index-1):
-                    bottom += data1
+                bottom = np.array(data[comparison_index][0])
+                for i in range(1, color_index):
+                    bottom += np.array(data[comparison_index][i])
                 bottom = bottom.tolist()
                 kwargs['bottom'] = bottom
 
-            bar = plt.bar(index + distance, data1, bar_width,
-                            **kwargs)
+            bar = plt.bar(index + distance, inner_data, bar_width,
+                          **kwargs)
             bars.append(bar)
 
-    plt.xlabel('Person')
-    plt.ylabel('Scores')
-    plt.title('Scores by person')
-    plt.xticks(index + bar_width, ('A', 'B', 'C', 'D'))
+    plt.ylabel('Time (ms)')
+    plt.title('Relative time breakdown')
+    plt.xticks(index + bar_width, FUNCTION_NAMES)
     plt.legend((bars[0][0], bars[1][0], bars[2][0], bars[3][0]),
-               ('init', 'exec', 'serialize', 'write'))
+               TIME_NAMES)
 
     plt.tight_layout()
     plt.show()
@@ -70,5 +71,4 @@ def plot_stacked_bar_chart():
 
 
 if __name__ == '__main__':
-    # plot_stacked_bar_chart()
-    plot_comparison_bar_chart()
+    plot_stacked_bar_chart()
