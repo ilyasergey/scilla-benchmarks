@@ -1,3 +1,4 @@
+import sys
 import re
 import uuid
 from threading import Thread
@@ -33,7 +34,7 @@ def run_scilla_vs_evm_exec():
     for interpreter in INTERPRETERS:
         interpreter_times[interpreter] = {}
 
-        interpreter_threads = [Thread(target=run_benchmark, args=(queue, interpreter, size, 1))
+        interpreter_threads = [Thread(target=run_benchmark, args=(queue, interpreter, size, 10))
                                for size in COMPARISON_STATE_SIZES]
         for thread in interpreter_threads:
             thread.start()
@@ -282,6 +283,19 @@ def print_table_data(table_data):
 
 
 if __name__ == '__main__':
-    # run_breakdown()
-    # run_scilla_vs_evm_exec()
-    run_size_comparison()
+    no_cmd = 'available commands are breakdown, exec, size'
+
+    if len(sys.argv) < 2:
+        print('No command specified. ' + no_cmd)
+        sys.exit()
+
+    command = sys.argv[1]
+
+    if command == 'breakdown':
+        run_breakdown()
+    elif command == 'exec':
+        run_scilla_vs_evm_exec()
+    elif command == 'size':
+        run_size_comparison()
+    else:
+        print("No commmand '{}' found".format(command) + '. ' + no_cmd)
