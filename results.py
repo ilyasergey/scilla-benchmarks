@@ -13,7 +13,7 @@ from common import STATE_SIZES, TIME_NAMES, FUNCTION_NAMES,\
 def run_benchmark(queue, interpreter, state_size, iterations):
     container_id = str(uuid.uuid4())
 
-    image_name = '{}-benchmark'.format(interpreter)
+    image_name = 'scilla-benchmarks_{}-benchmark'.format(interpreter)
 
     output = subprocess.check_output(['docker', 'run', '--name', container_id,
                                       '-it', image_name, str(state_size), str(iterations)])

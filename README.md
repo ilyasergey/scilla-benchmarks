@@ -45,7 +45,7 @@ To produce the benchmark results, a Python script is used to create Docker conta
 
 The script file is executed as below, where `command` could be `breakdown`, `exec` or `size`.
 
-In the prior rounds of testing when the paper was written, the number of test iterations used was 100. However, due to the time it takes to complete a test, for example where 500k state entries is used, the test iterations are lowered. They are set to 5 iterations for the `exec` command and 1 iteration for the `breakdown` command.
+In the prior rounds of testing when the paper was written, the number of test iterations used was 100. However, due to the long time it takes to complete a test, for example when 500k state entries are used, the test iterations are lowered. They are set to 5 iterations for the `exec` command and 1 iteration for the `breakdown` command.
 
 The results may be slightly different from what was written in the paper, due to the lack of averaging.
 
@@ -57,7 +57,7 @@ python results.py <command>
 
 The `breakdown` command generates the relative time breakdown of execution of Scilla smart contracts. This breaks down a Scilla contract execution into multiple phases, `init`, `exec`, `serialize` and `write`.
 
-The contract functions tested were `ft-transfer` (Fungible Token transfer), `nft-setApprovalForAll` (Non Fungible Token setApprovalForAll), `auc-bid` (Auction bid), `cfd-pledge` (Crowdfunding pledge).
+The contract transitions tested were `ft-transfer` (Fungible Token transfer), `nft-setApprovalForAll` (Non Fungible Token setApprovalForAll), `auc-bid` (Auction bid), `cfd-pledge` (Crowdfunding pledge).
 
 The table generated reflects Table 3 (breakdown of contract run-times) and the bar chart reflects the Figure 11(a) in the paper.
 
@@ -69,6 +69,8 @@ python results.py breakdown
 
 The `exec` command generates the execution time of Scilla and EVM on (excluding phases like `init`, `serialize` and `write`).
 
+The 4 contract transitions,`ft-transfer`, `nft-setApprovalForAll`, `auc-bid`, `cfd-pledge`, were tested with 10k and 50k state entries.
+
 The bar chart generated reflects the Figure 11(b) of the comparison between Scilla/EVM execution times.
 
 ```
@@ -77,7 +79,7 @@ python results.py exec
 
 ---
 
-The `size` command generates the code size comparison between Scilla, Solidity and EVM bytecode.
+The `size` command generates the code size comparison between Scilla, Solidity and EVM bytecode. The 4 major contracts `FungibleToken`, `NonFungibleToken`, `Auction` and `Crowdfunding` were used to measure the code size. These contracts were written both in Scilla and Solidity.
 
 The bar chart generated reflects the Figure 11(c) of the code size comparison.
 
