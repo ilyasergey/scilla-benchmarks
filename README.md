@@ -45,9 +45,15 @@ To produce the benchmark results, a Python script is used to create Docker conta
 
 The script file is executed as below, where `command` could be `breakdown`, `exec` or `size`.
 
+In the prior rounds of testing when the paper was written, the number of test iterations used was 100. However, due to the time it takes to complete a test, for example where 500k state entries is used, the test iterations are lowered. They are set to 5 iterations for the `exec` command and 1 iteration for the `breakdown` command.
+
+The results may be slightly different from what was written in the paper, due to the lack of averaging.
+
 ```
 python results.py <command>
 ```
+
+---
 
 The `breakdown` command generates the relative time breakdown of execution of Scilla smart contracts. This breaks down a Scilla contract execution into multiple phases, `init`, `exec`, `serialize` and `write`.
 
@@ -59,6 +65,8 @@ The table generated reflects Table 3 (breakdown of contract run-times) and the b
 python results.py breakdown
 ```
 
+---
+
 The `exec` command generates the execution time of Scilla and EVM on (excluding phases like `init`, `serialize` and `write`).
 
 The bar chart generated reflects the Figure 11(b) of the comparison between Scilla/EVM execution times.
@@ -66,6 +74,8 @@ The bar chart generated reflects the Figure 11(b) of the comparison between Scil
 ```
 python results.py exec
 ```
+
+---
 
 The `size` command generates the code size comparison between Scilla, Solidity and EVM bytecode.
 
