@@ -4,29 +4,72 @@ from threading import Thread
 from queue import Queue
 import subprocess
 from charts import plot_comparison_bar_chart
-from common import STATE_SIZES, TIME_NAMES, FUNCTION_NAMES
+from common import STATE_SIZES, TIME_NAMES, FUNCTION_NAMES,\
+    COMPARISON_STATE_SIZES, INTERPRETERS
 
 
-def run_scilla_benchmark(queue, state_size, iterations):
-    state_size = str(state_size)
-    iterations = str(iterations)
+def run_benchmark(queue, interpreter, state_size, iterations):
     container_id = str(uuid.uuid4())
 
+    image_name = 'scilla-benchmarks_{}-benchmark'.format(interpreter)
+
     output = subprocess.check_output(['docker', 'run', '--name', container_id,
-                                      '-it', 'scilla-benchmarks_scilla-benchmark', state_size, iterations])
-    queue.put(output)
+                                      '-it', image_name, str(state_size), str(iterations)])
+    queue.put((interpreter, state_size, output))
 
     # make the terminal less janky
     subprocess.call(['stty', 'sane'])
 
     print('Completed benchmark for state size of {:,} with {} iterations'.format(
-        int(state_size), iterations))
+        state_size, iterations))
+
+
+def run_scilla_vs_evm_exec():
+    queue = Queue()
+    threads = []
+    interpreter_times = {}
+
+    for interpreter in INTERPRETERS:
+        interpreter_times[interpreter] = {}
+
+        interpreter_threads = [Thread(target=run_benchmark, args=(queue, interpreter, size, 1))
+                               for size in COMPARISON_STATE_SIZES]
+        for thread in interpreter_threads:
+            thread.start()
+            threads.append(thread)
+
+    for thread in threads:
+        thread.join()
+
+    outputs = tuple(queue.queue)
+    for parse_output in outputs:
+        interpreter, size, output = parse_output
+        times = parse_exec_times(interpreter, output.decode('utf-8'))
+        interpreter_times[interpreter][size] = times
+
+    print(interpreter_times)
+
+
+def parse_exec_times(interpreter, output):
+    re_pattern = None
+    if interpreter == 'scilla':
+        re_pattern = 'Median exec time: (\\d*\\.?\\d*) ms'
+    elif interpreter == 'evm':
+        re_pattern = 'Median execution time: (\\d*\\.?\\d*) ms'
+
+    exec_times = re.finditer(re_pattern, output)
+    times = {}
+
+    for index, time_match in enumerate(exec_times):
+        function_name = FUNCTION_NAMES[index]
+        times[function_name] = float(time_match[1])
+    return times
 
 
 def run_breakdown():
     state_breakdown = {}
     queue = Queue()
-    threads = [Thread(target=run_scilla_benchmark, args=(queue, size, 1))
+    threads = [Thread(target=run_benchmark, args=(queue, 'scilla', size, 1))
                for size in STATE_SIZES]
 
     for thread in threads:
@@ -38,7 +81,8 @@ def run_breakdown():
         thread.join()
 
     outputs = tuple(queue.queue)
-    results = [parse_output(output.decode('utf-8')) for output in outputs]
+    results = [parse_output(output.decode('utf-8'))
+               for interpreter, state_size, output in outputs]
 
     for index, result in enumerate(results):
         size = STATE_SIZES[index]
@@ -160,4 +204,5 @@ def print_table_data(table_data):
 
 
 if __name__ == '__main__':
-    run_breakdown()
+    # run_breakdown()
+    run_scilla_vs_evm_exec()
