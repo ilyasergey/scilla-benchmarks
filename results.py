@@ -3,7 +3,7 @@ import uuid
 from threading import Thread
 from queue import Queue
 import subprocess
-from charts import plot_comparison_bar_chart
+from charts import plot_relative_time, plot_comparison_bar_chart
 from common import STATE_SIZES, TIME_NAMES, FUNCTION_NAMES,\
     COMPARISON_STATE_SIZES, INTERPRETERS
 
@@ -47,7 +47,8 @@ def run_scilla_vs_evm_exec():
         times = parse_exec_times(interpreter, output.decode('utf-8'))
         interpreter_times[interpreter][size] = times
 
-    print(interpreter_times)
+    plot_data = transform_to_comparison_data(interpreter_times)
+    plot_comparison_bar_chart(plot_data)
 
 
 def parse_exec_times(interpreter, output):
@@ -66,10 +67,23 @@ def parse_exec_times(interpreter, output):
     return times
 
 
+def transform_to_comparison_data(data):
+    plot_data = []
+
+    for interpreter in INTERPRETERS:
+        time_data = []
+
+        for size in COMPARISON_STATE_SIZES:
+            for function_name in FUNCTION_NAMES:
+                time_data.append(data[interpreter][size][function_name])
+        plot_data.append(time_data)
+    return plot_data
+
+
 def run_breakdown():
     state_breakdown = {}
     queue = Queue()
-    threads = [Thread(target=run_benchmark, args=(queue, 'scilla', size, 1))
+    threads = [Thread(target=run_benchmark, args=(queue, 'scilla', size, 10))
                for size in STATE_SIZES]
 
     for thread in threads:
@@ -95,7 +109,7 @@ def run_breakdown():
 
     print('Showing the bar chart...')
     plot_data = transform_to_plot_data(state_breakdown)
-    plot_comparison_bar_chart(plot_data)
+    plot_relative_time(plot_data)
 
 
 def parse_output(output):
