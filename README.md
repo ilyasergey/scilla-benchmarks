@@ -39,7 +39,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Producing the results
+## Reproducing the Results
 
 To produce the benchmark results, a Python script is used to create Docker containers, run tests and parse the test results. The script file is `results.py`.
 
