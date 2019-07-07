@@ -7,3 +7,10 @@ CONTRACTS = ['ft', 'nft', 'auc', 'cfd']
 COMPARISON_STATE_SIZES = [10000, 50000]
 INTERPRETERS = ['scilla', 'evm']
 CONTRACT_SIZE_NAMES = ['scilla', 'evm-sol', 'evm-bytecode']
+
+READABLE_INTERPRETER_NAMES = {
+    'scilla': 'Scilla',
+    'evm': 'EVM',
+    'evm-sol': 'Solidity',
+    'evm-bytecode': 'EVM bytecode'
+}

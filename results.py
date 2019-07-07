@@ -1,3 +1,4 @@
+import os
 import sys
 import re
 import uuid
@@ -7,7 +8,11 @@ import subprocess
 from charts import plot_relative_time, plot_comparison_bar_chart,\
     plot_compare_sizes
 from common import STATE_SIZES, TIME_NAMES, FUNCTION_NAMES,\
-    COMPARISON_STATE_SIZES, INTERPRETERS, CONTRACTS, CONTRACT_SIZE_NAMES
+    COMPARISON_STATE_SIZES, INTERPRETERS, CONTRACTS, CONTRACT_SIZE_NAMES,\
+    READABLE_INTERPRETER_NAMES
+
+root_dir = os.path.dirname(os.path.abspath(__file__))
+results_dir = os.path.join(root_dir, 'results')
 
 
 def run_benchmark(queue, interpreter, state_size, iterations):
@@ -22,7 +27,7 @@ def run_benchmark(queue, interpreter, state_size, iterations):
     # make the terminal less janky
     subprocess.call(['stty', 'sane'])
 
-    subprocess.call(['docker', 'rm', container_id])
+    subprocess.call(['docker', 'rm', container_id], stdout=subprocess.DEVNULL)
 
     print('Completed {} benchmark for state size of {:,} with {} iterations'.format(
         interpreter, state_size, iterations))
@@ -52,9 +57,15 @@ def run_scilla_vs_evm_exec():
         times = parse_exec_times(interpreter, output.decode('utf-8'))
         interpreter_times[interpreter][size] = times
 
-    print('\nShowing the bar chart...')
     plot_data = transform_to_comparison_data(interpreter_times)
-    plot_comparison_bar_chart(plot_data)
+
+    print_exec_table(plot_data)
+
+    filename = 'scilla-evm-execution-time.png'
+    filepath = os.path.join(results_dir, filename)
+    plot_comparison_bar_chart(plot_data, filepath)
+
+    print('\nSaved the chart to {}'.format(filepath))
 
 
 def run_size_comparison():
@@ -86,9 +97,79 @@ def run_size_comparison():
             interpreter_sizes['evm-sol'] = sol_sizes
             interpreter_sizes['evm-bytecode'] = bytecode_sizes
 
-    print('\nShowing the bar chart...')
     plot_data = transform_to_compare_size(interpreter_sizes)
-    plot_compare_sizes(plot_data)
+    print_size_table(plot_data)
+
+    filename = 'code-size-comparison.png'
+    filepath = os.path.join(results_dir, filename)
+    plot_compare_sizes(plot_data, filepath)
+
+    print('\nSaved the chart to {}'.format(filepath))
+
+
+def print_exec_table(data):
+    contracts_10k = [contract+'-10' for contract in CONTRACTS]
+    contracts_50k = [contract+'-50' for contract in CONTRACTS]
+    all_contracts = contracts_10k + contracts_50k
+    separator = ' | '
+
+    print('\nRESULTS (in milliseconds):\n')
+
+    header_row = ' ' * 8 + separator
+
+    for contract_name in all_contracts:
+        header_row += '{:>12}'.format(contract_name)
+        header_row += separator
+    print(header_row)
+
+    divider_row = '-' * 8 + ' + '
+
+    for _ in all_contracts:
+        divider_row += '-' * 12 + ' + '
+    print(divider_row)
+
+    for index, interpreter in enumerate(INTERPRETERS):
+        readable_interpreter_name = READABLE_INTERPRETER_NAMES[interpreter]
+        row = '{:<8}'.format(readable_interpreter_name) + separator
+        interpreter_data = data[index]
+
+        for time in interpreter_data:
+            row += '{:>12.2f}'.format(time)
+            row += separator
+        print(row)
+
+    print()
+
+
+def print_size_table(data):
+    separator = ' | '
+
+    print('\nRESULTS (in bytes):\n')
+
+    header_row = ' ' * 15 + separator
+
+    for contract_name in CONTRACTS:
+        header_row += '{:>12}'.format(contract_name)
+        header_row += separator
+    print(header_row)
+
+    divider_row = '-' * 15 + ' + '
+
+    for _ in CONTRACTS:
+        divider_row += '-' * 12 + ' + '
+    print(divider_row)
+
+    for index, interpreter in enumerate(CONTRACT_SIZE_NAMES):
+        readable_interpreter_name = READABLE_INTERPRETER_NAMES[interpreter]
+        row = '{:<15}'.format(readable_interpreter_name) + separator
+        interpreter_data = data[index]
+
+        for time in interpreter_data:
+            row += '{:>12}'.format(time)
+            row += separator
+        print(row)
+
+    print()
 
 
 def parse_contract_size(interpreter, output):
@@ -173,14 +254,18 @@ def run_breakdown():
         size = STATE_SIZES[index]
         state_breakdown[size] = result
 
-    print('\nRESULTS:')
+    print('\nRESULTS (in milliseconds):')
     table_data = transform_to_table_data(state_breakdown)
     print_table_data(table_data)
     print()
 
-    print('Showing the bar chart...')
     plot_data = transform_to_plot_data(state_breakdown)
-    plot_relative_time(plot_data)
+
+    filename = 'relative-time-breakdown.png'
+    filepath = os.path.join(results_dir, filename)
+    plot_relative_time(plot_data, filepath)
+
+    print('\nSaved the chart to {}'.format(filepath))
 
 
 def parse_output(output):
@@ -283,9 +368,14 @@ def print_table_data(table_data):
         for time_data in function_data:
             for time in time_data:
                 row_str += ('{:>'+str(data_left_padding) +
-                            '}').format(round(time, 2))
+                            '.2f}').format(time)
             row_str += group_separator
         print(row_str)
+
+
+def create_results_dir():
+    if not os.path.exists(results_dir):
+        os.mkdir(results_dir)
 
 
 if __name__ == '__main__':
@@ -296,6 +386,8 @@ if __name__ == '__main__':
         sys.exit()
 
     command = sys.argv[1]
+
+    create_results_dir()
 
     if command == 'breakdown':
         run_breakdown()

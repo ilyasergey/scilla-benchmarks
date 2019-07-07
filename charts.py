@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from common import STATE_SIZES, TIME_NAMES, FUNCTION_NAMES
 
 
-def plot_relative_time(data):
+def plot_relative_time(data, save_destination):
     # data to plot
     n_groups = 4
     n_comparison = 3
@@ -47,10 +47,12 @@ def plot_relative_time(data):
                TIME_NAMES)
 
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+
+    plt.savefig(save_destination)
 
 
-def plot_comparison_bar_chart(plot_data):
+def plot_comparison_bar_chart(plot_data, save_destination):
     # data to plot
     n_groups = 8
     scilla_data, evm_data = plot_data
@@ -79,10 +81,13 @@ def plot_comparison_bar_chart(plot_data):
     plt.legend()
 
     plt.tight_layout()
-    plt.show()
+
+    plt.savefig(save_destination)
+
+    # plt.show()
 
 
-def plot_compare_sizes(plot_data):
+def plot_compare_sizes(plot_data, save_destination):
     # data to plot
     n_groups = 4
     scilla_data, evm_sol_data, evm_bytecode_data = plot_data
@@ -115,7 +120,8 @@ def plot_compare_sizes(plot_data):
     plt.legend()
 
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig(save_destination)
 
 
 if __name__ == '__main__':
