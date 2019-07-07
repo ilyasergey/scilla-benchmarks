@@ -13,11 +13,6 @@ RUN \
   apt-get install -y --no-install-recommends gnupg curl build-essential m4 ocaml opam pkg-config zlib1g-dev libgmp-dev libffi-dev libssl-dev libboost-system-dev libsecp256k1-dev libsqlite3-dev libpcre3-dev && \
   rm -rf /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_11.x  | bash -
-RUN apt-get -y install nodejs
-
-RUN npm install kaya-cli
-
 RUN opam init -y --disable-sandboxing
 
 RUN opam switch create -y 4.06.1
@@ -30,11 +25,17 @@ RUN \
   add-apt-repository ppa:ethereum/ethereum && \
   add-apt-repository ppa:deadsnakes/ppa && \
   apt-get update && \
-  apt-get -y install solc python3.6 python3.6-dev && \
+  apt-get -y install python3.6 python3.6-dev && \
   curl https://bootstrap.pypa.io/get-pip.py | python3.6
 
-RUN \
-  git clone https://github.com/Zilliqa/scilla --branch oopsla19-docker /home/scilla
+# RUN \
+#git clone https://github.com/Zilliqa/scilla --branch oopsla19-docker /home/scilla
+
+WORKDIR /home
+
+ADD ./dist-scilla/scilla.zip /home
+
+RUN unzip /home/scilla.zip
 
 WORKDIR /home/scilla
 

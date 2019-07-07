@@ -14,7 +14,7 @@ RUN \
   curl https://bootstrap.pypa.io/get-pip.py | python3.6
 
 RUN \
-  apt-get -y install libsnappy-dev wget python-apt
+  apt-get -y install libsnappy-dev wget python-apt unzip
 
 ENV LEVELDB_VER="1.20"
 
@@ -36,9 +36,15 @@ ENV GOBIN=/usr/lib/go-1.9
 
 RUN \
   curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh && \
-  mkdir -p $GOPATH/src/github.com/kenchangh && \
-  git clone https://github.com/kenchangh/evm-tools $GOPATH/src/github.com/kenchangh/evm-tools
+  mkdir -p $GOPATH/src/github.com/kenchangh
 
+ADD ./dist-evm/evm-tools.zip $GOPATH/src/github.com/kenchangh
+
+WORKDIR $GOPATH/src/github.com/kenchangh
+
+RUN unzip evm-tools.zip
+
+# git clone https://github.com/kenchangh/evm-tools $GOPATH/src/github.com/kenchangh/evm-tools
 
 WORKDIR $GOPATH/src/github.com/kenchangh/evm-tools
 
