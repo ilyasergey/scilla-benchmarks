@@ -144,6 +144,9 @@ def print_exec_table(data):
 def print_size_table(data):
     separator = ' | '
 
+    print('\nNote: Code sizes will not change in size, as the programs are written beforehand.')
+    print('They can be inspected in scilla-benchmark/contracts and evm-benchmark/contracts.')
+
     print('\nRESULTS (in bytes):\n')
 
     header_row = ' ' * 15 + separator
