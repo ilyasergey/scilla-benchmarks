@@ -22,6 +22,8 @@ def run_benchmark(queue, interpreter, state_size, iterations):
     # make the terminal less janky
     subprocess.call(['stty', 'sane'])
 
+    subprocess.call(['docker', 'rm', container_id])
+
     print('Completed {} benchmark for state size of {:,} with {} iterations'.format(
         interpreter, state_size, iterations))
 
@@ -123,9 +125,9 @@ def transform_to_compare_size(data):
 def parse_exec_times(interpreter, output):
     re_pattern = None
     if interpreter == 'scilla':
-        re_pattern = 'Median exec time: (\\d*\\.?\\d*) ms'
+        re_pattern = 'Median total time: (\\d*\\.?\\d*) ms'
     elif interpreter == 'evm':
-        re_pattern = 'Median execution time: (\\d*\\.?\\d*) ms'
+        re_pattern = 'Median total time: (\\d*\\.?\\d*) ms'
 
     exec_times = re.finditer(re_pattern, output)
     times = {}

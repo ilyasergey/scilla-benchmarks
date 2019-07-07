@@ -78,6 +78,7 @@ def run_tests(bytecode, contract_plan):
                 copytree(evm_start_data_dir, evm_data_dir)
                 return addr_copy
 
+        total_times = []
         execution_times = []
         init_times = []
         io_times = []
@@ -103,12 +104,13 @@ def run_tests(bytecode, contract_plan):
                 if iteration_counter % 10 == 0:
                     print('Ran {} iterations'.format(iteration_counter))
 
-            exec_time, init_time, io_time = perform_transaction(
+            total_time, exec_time, init_time, io_time = perform_transaction(
                 address, txn_plan)
 
             # there may be some transactions interleaved
             # so we only count the ones with the matching function name
             if is_matching_test:
+                total_times.append(total_time)
                 execution_times.append(exec_time)
                 init_times.append(init_time)
                 io_times.append(io_time)
@@ -118,6 +120,8 @@ def run_tests(bytecode, contract_plan):
         db_size, key_count = calculate_all_db_key_value_sizes()
         print('New database size: {:,} bytes'.format(
             db_size))
+        print('Median total time: {0:.6f} ms'.format(
+            median(total_times)))
         print('Median execution time: {0:.6f} ms'.format(
             median(execution_times)))
         print('Mean execution time: {0:.6f} ms'.format(

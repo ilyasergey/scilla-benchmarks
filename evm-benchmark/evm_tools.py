@@ -169,7 +169,8 @@ def perform_transaction(address, txn_plan, root_hash=None):
     exec_time, init_time, io_time = perform_transaction_(caller, address, function,
                                                          *args, time=block_timestamp,
                                                          amount=amount, root_hash=root_hash)
-    return exec_time, init_time, io_time
+    total_time = exec_time + init_time + io_time
+    return total_time, exec_time, init_time, io_time
 
 
 def get_current_root_hash():
