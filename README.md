@@ -23,7 +23,7 @@ The `tar`-archive file size is approximately 5 GB.
 - Import the `tar`-archive as a Docker image:
 
 ```shell
-docker load -i paper467.tar.gz
+docker load -i paper467.tar
 ```
 
 This step might take a while and produce the following as the last line of the output:
