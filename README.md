@@ -7,51 +7,36 @@ This repository contains the benchmarking suite for testing the performance of S
 In order to run the benchmarks, you must have the software listed below.
 
 1. Docker
-2. Docker Compose
-3. Python3
-4. Python PIP
-5. Virtualenv (Optional)
 
 It is suggested to use `pip install docker-compose` to install `docker-compose`.
 
-In the root directory, run the `build` command to build the images:
+In the root directory, run the `build` command to build the images. This will take a while as it downloads all:
 
 ```
-docker-compose build
-```
-
-Next, you will have to install the Python dependencies with `pip`. In the root directory,
-
-```
-pip install -r requirements.txt
-```
-
-Optionally, you could use `virtualenv` to create a virtual Python environment to install the Python dependencies.
-
-```
-# create the virtualenv
-virtualenv -p python3 venv
-
-# activate the virtualenv
-source venv/bin/activate
-
-# install with venv's pip
-pip install -r requirements.txt
+docker build -t scilla_benchmarks scilla-benchmarks
 ```
 
 ## Reproducing the Results
 
-To produce the benchmark results, a Python script is used to create Docker containers, run tests and parse the test results. The script file is `results.py`.
+To produce the benchmark results, a Docker container is used to run the tests.
 
-The script file is executed as below, where `command` could be `breakdown`, `exec` or `size`.
+The docker container takes in `command` to run, where `command` could be `breakdown`, `exec` or `size`.
 
 In the prior rounds of testing when the paper was written, the number of test iterations used was 100. However, due to the long time it takes to complete a test, for example when 500k state entries are used, the test iterations are lowered. They are set to 5 iterations for the `exec` command and 1 iteration for the `breakdown` command.
 
 The results may be slightly different from what was written in the paper, due to the lack of averaging.
 
 ```
-python3 results.py <command>
+docker run -it scilla_benchmarks <command>
 ```
+
+After every time the command is run, to retrieve the output from the container, run
+
+```
+docker cp $(docker ps -alq):/code/results .
+```
+
+This copies generated chart images into the results directory.
 
 ---
 
@@ -64,7 +49,7 @@ The contract transitions tested were `ft-transfer` (Fungible Token transfer), `n
 The table generated reflects Table 3 (breakdown of contract run-times) and the bar chart reflects the Figure 11(a) in the paper.
 
 ```
-python3 results.py breakdown
+docker run -it scilla_benchmarks breakdown
 ```
 
 ---
@@ -78,7 +63,7 @@ The 4 contract transitions,`ft-transfer`, `nft-setApprovalForAll`, `auc-bid`, `c
 The bar chart generated reflects the Figure 11(b) of the comparison between Scilla/EVM execution times.
 
 ```
-python3 results.py exec
+docker run -it scilla_benchmarks exec
 ```
 
 ---
@@ -90,5 +75,5 @@ The `size` command generates the code size comparison between Scilla, Solidity a
 The bar chart generated reflects the Figure 11(c) of the code size comparison.
 
 ```
-python3 results.py size
+docker run -it scilla_benchmarks size
 ```
