@@ -129,7 +129,7 @@ This snapshot is available at:
 
 [https://github.com/Zilliqa/scilla/tree/oopsla19-docker](https://github.com/Zilliqa/scilla/tree/oopsla19-docker)
 
-Specifically, the commit hash for the scilla distribution used is:
+Specifically, the commit hash for the Scilla distribution used is:
 
 [https://github.com/Zilliqa/scilla/tree/0e38aae67670aeba23a7a3d6067d29ea7ca331c5](https://github.com/Zilliqa/scilla/tree/0e38aae67670aeba23a7a3d6067d29ea7ca331c5)
 
