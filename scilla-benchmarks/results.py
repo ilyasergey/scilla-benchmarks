@@ -17,9 +17,11 @@ results_dir = os.path.join(root_dir, 'results')
 
 def run_benchmark(queue, interpreter, state_size, iterations):
     script_file = '{interpreter}-benchmark/{interpreter}_benchmark.py'.format(
-        interpreter)
+        interpreter=interpreter)
 
-    output = subprocess.check_output(['python3.6', script_file])
+    output = subprocess.check_output(
+        ['python3.6', script_file, str(state_size), str(iterations)],
+        stderr=subprocess.DEVNULL)
 
     # output = subprocess.check_output(['docker', 'run', '--name', container_id,
     #                                   '-it', image_name, str(state_size), str(iterations)])
@@ -36,21 +38,14 @@ def run_benchmark(queue, interpreter, state_size, iterations):
 
 def run_scilla_vs_evm_exec():
     queue = Queue()
-    threads = []
     interpreter_times = {}
     print('Running benchmarks on size 10k, 50k')
 
     for interpreter in INTERPRETERS:
         interpreter_times[interpreter] = {}
 
-        interpreter_threads = [Thread(target=run_benchmark, args=(queue, interpreter, size, 5))
-                               for size in COMPARISON_STATE_SIZES]
-        for thread in interpreter_threads:
-            thread.start()
-            threads.append(thread)
-
-    for thread in threads:
-        thread.join()
+        for size in COMPARISON_STATE_SIZES:
+            run_benchmark(queue, interpreter, size, 5)
 
     outputs = tuple(queue.queue)
     for parse_output in outputs:
@@ -71,18 +66,11 @@ def run_scilla_vs_evm_exec():
 
 def run_size_comparison():
     queue = Queue()
-    threads = []
     interpreter_sizes = {}
     print('Reading code sizes...')
 
     for interpreter in INTERPRETERS:
-        thread = Thread(target=run_benchmark, args=(queue, interpreter, 1, 1))
-        threads.append(thread)
-
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
+        run_benchmark(queue, interpreter, 1, 1)
 
     outputs = tuple(queue.queue)
 
@@ -239,16 +227,11 @@ def transform_to_comparison_data(data):
 def run_breakdown():
     state_breakdown = {}
     queue = Queue()
-    threads = [Thread(target=run_benchmark, args=(queue, 'scilla', size, 1))
-               for size in STATE_SIZES]
 
-    for thread in threads:
-        thread.start()
+    for size in STATE_SIZES:
+        run_benchmark(queue, 'scilla', size, 1)
 
     print('Running benchmarks on size 10k, 100k, 500k')
-
-    for thread in threads:
-        thread.join()
 
     outputs = tuple(queue.queue)
     results = [parse_output(output.decode('utf-8'))
