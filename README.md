@@ -143,6 +143,8 @@ with Scilla. The Go-Ethereum version used by evm-tools is 1.4.10. The snapshot i
 
 [https://github.com/kenchangh/evm-tools/tree/e2324a0c362acd930a66e62382c9f0a23af38d39](https://github.com/kenchangh/evm-tools/tree/e2324a0c362acd930a66e62382c9f0a23af38d39)
 
+A packaged snapshot of `evm-tools` is already prepared in the Evaluation Scripts in `scilla-benchmarks/evm-benchmark/dist-evm`.
+
 ## Cleaning up
 
 In order to remove the image downloaded, run the following command:
