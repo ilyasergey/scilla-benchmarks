@@ -4,16 +4,22 @@ This repository contains the benchmarking suite for testing the performance of S
 
 ## Installation
 
-In order to run the benchmarks, you must have the software listed below.
+In order to run the benchmarks, you must have the [Docker](https://www.docker.com) platform installed.
 
-1. Docker
+In the project root directory, run the following command to build the images.
 
-It is suggested to use `pip install docker-compose` to install `docker-compose`.
-
-In the root directory, run the `build` command to build the images. This will take a while as it downloads all:
-
-```
+```shell
 docker build -t scilla_benchmarks scilla-benchmarks
+```
+
+This will take a while as it downloads all the project's dependencies and compiles OCaml libraries.
+In particular, it's expected that the build process doesn't produce output for several minutes when you see the following text on the screen
+
+```shell
+<><> Gathering sources ><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+[ocaml-base-compiler.4.06.1] downloaded from cache at https://opam.ocaml.org/cache
+
+<><> Processing actions <><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 ```
 
 ## Reproducing the Results
