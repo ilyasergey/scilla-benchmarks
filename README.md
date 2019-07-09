@@ -124,13 +124,12 @@ The scilla infrastructure is currently under active ongoing
 development. The results reported in the OOPSLA'19 submission were
 compiled using the dedicated branch of the repository, containing the
 snapshot as of the time of the submission, instrumented with
-additional output for the sake of performance comparison with EVM (\cf
-Section~\ref{sec:comparison-with-evm} of this Overview). This snapshot
-is available at:
+additional output for the sake of performance comparison with EVM. 
+This snapshot is available at:
 
 [https://github.com/Zilliqa/scilla/tree/oopsla19-docker](https://github.com/Zilliqa/scilla/tree/oopsla19-docker)
 
-Specifically, the commit hash for the scilla distribution used is:
+Specifically, the commit hash for the Scilla distribution used is:
 
 [https://github.com/Zilliqa/scilla/tree/0e38aae67670aeba23a7a3d6067d29ea7ca331c5](https://github.com/Zilliqa/scilla/tree/0e38aae67670aeba23a7a3d6067d29ea7ca331c5)
 
