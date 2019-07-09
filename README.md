@@ -34,7 +34,7 @@ Please skip this step if you have followed the instructions in the previous sect
 In the project root directory, run the following command to build the images.
 
 ```shell
-docker build -t scilla_benchmarks scilla-benchmarks
+docker build -t kenchangh/scilla-benchmarks:oopsla scilla-benchmarks
 ```
 
 This will take a while as it downloads all the project's dependencies and compiles OCaml libraries.
@@ -57,13 +57,13 @@ In the prior rounds of testing when the paper was written, the number of test it
 
 The results may be slightly different from what was written in the paper, due to the lack of averaging.
 
-```
-docker run -it scilla_benchmarks <command>
+```shell
+docker run -it kenchangh/scilla-benchmarks:oopsla <command>
 ```
 
 After every time the command is run, to retrieve the output from the container, run
 
-```
+```shell
 docker cp $(docker ps -alq):/code/results .
 ```
 
@@ -79,8 +79,8 @@ The contract transitions tested were `ft-transfer` (Fungible Token transfer), `n
 
 The table generated reflects Table 3 (breakdown of contract run-times) and the bar chart reflects the Figure 11(a) in the paper.
 
-```
-docker run -it scilla_benchmarks breakdown
+```shell
+docker run -it kenchangh/scilla-benchmarks:oopsla breakdown
 ```
 
 ---
@@ -93,8 +93,8 @@ The 4 contract transitions,`ft-transfer`, `nft-setApprovalForAll`, `auc-bid`, `c
 
 The bar chart generated reflects the Figure 11(b) of the comparison between Scilla/EVM execution times.
 
-```
-docker run -it scilla_benchmarks exec
+```shell
+docker run -it kenchangh/scilla-benchmarks:oopsla exec
 ```
 
 ---
@@ -105,6 +105,6 @@ The `size` command generates the code size comparison between Scilla, Solidity a
 
 The bar chart generated reflects the Figure 11(c) of the code size comparison.
 
-```
-docker run -it scilla_benchmarks size
+```shell
+docker run -it kenchangh/scilla-benchmarks:oopsla size
 ```
