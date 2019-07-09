@@ -9,25 +9,30 @@ This repository contains the benchmarking suite for testing the performance of S
 In order to run the benchmarks, you must have the [Docker](https://www.docker.com) platform installed and the docker daemon running.
 
 - Download the compressed (gzip) Docker image from the following Google Drive link: [scilla-benchmarks.tar.gz](https://drive.google.com/open?id=1JRYASzDVOaiN8dO6s42fya3rnxDX67Ji).
-The file size is approximately 2 GB.
+  The file size is approximately 2 GB.
 
 - Uncompress the downloaded file, but do _not_ unpack the contained `scilla-benchmarks.tar` file.
-Note: macOS may automatically unzip archives after downloading them -- in this case this step may be safely skipped.
+  Note: macOS may automatically unzip archives after downloading them -- in this case this step may be safely skipped.
+
 ```shell
 gzip -d scilla-benchmarks.tar.gz
 ```
+
 The `tar`-archive file size is approximately 5 GB.
 
 - Import the `tar`-archive as a Docker image:
+
 ```shell
 docker load -i scilla-benchmarks.tar
 ```
+
 This step might take a while and produce the following as the last line of the output:
+
 ```shell
 Loaded image: kenchangh/scilla-benchmarks:oopsla
 ```
 
-### Installation via building Docker image using recipies provided in current repository
+### Installation via building Docker image using recipes provided in current repository
 
 Please skip this step if you have followed the instructions in the previous section.
 
@@ -67,7 +72,7 @@ After every time the command is run, to retrieve the output from the container, 
 docker cp $(docker ps -alq):/code/results .
 ```
 
-This copies generated chart images into the results directory.
+This copies generated chart images into the `./results` directory.
 
 ---
 
@@ -103,8 +108,45 @@ docker run -it kenchangh/scilla-benchmarks:oopsla exec
 
 The `size` command generates the code size comparison between Scilla, Solidity and EVM bytecode. The 4 major contracts `FungibleToken`, `NonFungibleToken`, `Auction` and `Crowdfunding` were used to measure the code size. These contracts were written both in Scilla and Solidity.
 
+_Note: The code sizes will not differ between separate runs, as pre-written code is read from disk._
+
+They are available in `scilla-benchmarks/scilla-benchmark/contracts` and `evm-benchmarks/evm-benchmark/contracts` respectively for inspection.
+
 The bar chart generated reflects the Figure 11(c) of the code size comparison.
 
 ```shell
 docker run -it kenchangh/scilla-benchmarks:oopsla size
+```
+
+## Submission-specific Snapshots of Scilla & EVM
+
+The scilla infrastructure is currently under active ongoing
+development. The results reported in the OOPSLA'19 submission were
+compiled using the dedicated branch of the repository, containing the
+snapshot as of the time of the submission, instrumented with
+additional output for the sake of performance comparison with EVM (\cf
+Section~\ref{sec:comparison-with-evm} of this Overview). This snapshot
+is available at:
+
+[https://github.com/Zilliqa/scilla/tree/oopsla19-docker](https://github.com/Zilliqa/scilla/tree/oopsla19-docker)
+
+Specifically, the commit hash for the scilla distribution used is:
+
+[https://github.com/Zilliqa/scilla/tree/0e38aae67670aeba23a7a3d6067d29ea7ca331c5](https://github.com/Zilliqa/scilla/tree/0e38aae67670aeba23a7a3d6067d29ea7ca331c5)
+
+A packaged snapshot of Scilla source code is already prepared in the Evaluation Scripts in `scilla-benchmarks/scilla-benchmark/dist-scilla`.
+
+Next, the `evm-tools` infrastructure is a collection of tools used to work with the EVM.
+These tools have been modified to support persistence. The EVM instance is also
+instrumented with additional printing for the sake of performance comparison
+with Scilla. The Go-Ethereum version used by evm-tools is 1.4.10. The snapshot is available at:
+
+[https://github.com/kenchangh/evm-tools/tree/e2324a0c362acd930a66e62382c9f0a23af38d39](https://github.com/kenchangh/evm-tools/tree/e2324a0c362acd930a66e62382c9f0a23af38d39)
+
+## Cleaning up
+
+In order to remove the image downloaded, run the following command:
+
+```shell
+docker rmi -f kenchangh/scilla-benchmarks:oopsla
 ```
