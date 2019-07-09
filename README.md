@@ -4,7 +4,32 @@ This repository contains the benchmarking suite for testing the performance of S
 
 ## Installation
 
-In order to run the benchmarks, you must have the [Docker](https://www.docker.com) platform installed.
+### Installation from pre-built Docker image
+
+In order to run the benchmarks, you must have the [Docker](https://www.docker.com) platform installed and the docker daemon running.
+
+- Download the compressed (gzip) Docker image from the following Google Drive link: [scilla-benchmarks.tar.gz](https://drive.google.com/open?id=1JRYASzDVOaiN8dO6s42fya3rnxDX67Ji).
+The file size is approximately 2 GB.
+
+- Uncompress the downloaded file, but do _not_ unpack the contained `scilla-benchmarks.tar` file.
+Note: macOS may automatically unzip archives after downloading them -- in this case this step may be safely skipped.
+```shell
+gzip -d scilla-benchmarks.tar.gz
+```
+The `tar`-archive file size is approximately 5 GB.
+
+- Import the `tar`-archive as a Docker image:
+```shell
+docker load -i scilla-benchmarks.tar
+```
+This step might take a while and produce the following as the last line of the output:
+```shell
+Loaded image: kenchangh/scilla-benchmarks:oopsla
+```
+
+### Installation via building Docker image using recipies provided in current repository
+
+Please skip this step if you have followed the instructions in the previous section.
 
 In the project root directory, run the following command to build the images.
 
