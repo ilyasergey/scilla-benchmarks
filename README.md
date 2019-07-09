@@ -15,7 +15,7 @@ In order to run the benchmarks, you must have the [Docker](https://www.docker.co
   Note: macOS may automatically unzip archives after downloading them -- in this case this step may be safely skipped.
 
 ```shell
-gzip -d scilla-benchmarks.tar.gz
+gzip -d paper467.tar.gz
 ```
 
 The `tar`-archive file size is approximately 5 GB.
@@ -23,7 +23,7 @@ The `tar`-archive file size is approximately 5 GB.
 - Import the `tar`-archive as a Docker image:
 
 ```shell
-docker load -i scilla-benchmarks.tar
+docker load -i paper467.tar.gz
 ```
 
 This step might take a while and produce the following as the last line of the output:
