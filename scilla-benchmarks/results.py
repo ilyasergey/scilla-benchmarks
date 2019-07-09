@@ -16,18 +16,19 @@ results_dir = os.path.join(root_dir, 'results')
 
 
 def run_benchmark(queue, interpreter, state_size, iterations):
-    container_id = str(uuid.uuid4())
+    script_file = '{interpreter}-benchmark/{interpreter}_benchmark.py'.format(
+        interpreter)
 
-    image_name = 'scilla-benchmarks_{}-benchmark'.format(interpreter)
+    output = subprocess.check_output(['python3.6', script_file])
 
-    output = subprocess.check_output(['docker', 'run', '--name', container_id,
-                                      '-it', image_name, str(state_size), str(iterations)])
+    # output = subprocess.check_output(['docker', 'run', '--name', container_id,
+    #                                   '-it', image_name, str(state_size), str(iterations)])
     queue.put((interpreter, state_size, output))
 
-    # make the terminal less janky
-    subprocess.call(['stty', 'sane'])
+    # # make the terminal less janky
+    # subprocess.call(['stty', 'sane'])
 
-    subprocess.call(['docker', 'rm', container_id], stdout=subprocess.DEVNULL)
+    # subprocess.call(['docker', 'rm', container_id], stdout=subprocess.DEVNULL)
 
     print('Completed {} benchmark for state size of {:,} with {} iterations'.format(
         interpreter, state_size, iterations))

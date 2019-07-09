@@ -1,18 +1,7 @@
 version: "3"
 
 services:
-  evm-benchmark:
-    # command:
-    #command: python3.6 /code/evm-benchmark/while.py
-    build: evm-benchmark
+  scilla-benchmarks:
+    build: scilla-benchmarks
     volumes:
       - .:/code
-  scilla-benchmark:
-    # command: python3.6 /code/scilla-benchmark/scilla_benchmark.py $ENTRIES $ITER
-    #command: python3.6 /code/evm-benchmark/while.py
-    build: scilla-benchmark
-    ports:
-      - "4200:4200"
-    volumes:
-      - .:/code
-      - /code/scilla-benchmark/zil-twitter/oracle/node_modules/
