@@ -8,7 +8,7 @@ This repository contains the benchmarking suite for testing the performance of S
 
 In order to run the benchmarks, you must have the [Docker](https://www.docker.com) platform installed and the docker daemon running.
 
-- Download the compressed (gzip) Docker image from the following Google Drive link: [scilla-benchmarks.tar.gz](https://drive.google.com/open?id=1JRYASzDVOaiN8dO6s42fya3rnxDX67Ji).
+- Download the compressed (gzip) Docker image from the following Google Drive link: [paper467.tar.gz](https://drive.google.com/open?id=1JRYASzDVOaiN8dO6s42fya3rnxDX67Ji).
   The file size is approximately 2 GB.
 
 - Uncompress the downloaded file, but do _not_ unpack the contained `scilla-benchmarks.tar` file.
