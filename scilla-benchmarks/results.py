@@ -15,6 +15,18 @@ root_dir = os.path.dirname(os.path.abspath(__file__))
 results_dir = os.path.join(root_dir, 'results')
 
 
+def run_unit_test():
+    # subprocess.run(['eval', '`opam config env`', '&&', 'make', 'test'],
+    #                shell=True, cwd='/home/scilla')
+
+    print('RUNNING UNIT TESTS FROM SCILLA SNAPSHOT ON BRANCH /oopsla19-docker\n')
+
+    process = subprocess.Popen('eval `opam config env` && make test',
+                               stdout=sys.stdout, stderr=sys.stderr,
+                               shell=True, cwd='/home/scilla')
+    process.communicate()
+
+
 def run_benchmark(queue, interpreter, state_size, iterations):
     script_file = '{interpreter}-benchmark/{interpreter}_benchmark.py'.format(
         interpreter=interpreter)
@@ -382,5 +394,7 @@ if __name__ == '__main__':
         run_scilla_vs_evm_exec()
     elif command == 'size':
         run_size_comparison()
+    elif command == 'unit-test':
+        run_unit_test()
     else:
         print("No commmand '{}' found".format(command) + '. ' + no_cmd)
