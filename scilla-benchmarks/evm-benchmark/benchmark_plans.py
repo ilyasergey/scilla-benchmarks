@@ -8,12 +8,18 @@ from evm_tools import perform_transaction
 
 total_token_supply = 1000000 * 10**16
 
-TRANSACTION_LIMIT = int(sys.argv[1])
-
+TRANSACTION_LIMIT = 100
 TEST_ITERATIONS = 100
 
-if len(sys.argv) > 2:
-    TEST_ITERATIONS = int(sys.argv[2])
+if len(sys.argv) != 4:
+    print('Invalid number of arguments, wanted 3')
+    sys.exit()
+
+    if sys.argv[1] == 'multi':
+        TRANSACTION_LIMIT = int(sys.argv[2])
+        TEST_ITERATIONS = int(sys.argv[3])
+    elif sys.argv[1] == 'single':
+        print('Manually running a single test for EVM is not implemented yet')
 
 
 print('Using {:,} state entries'.format(TRANSACTION_LIMIT))

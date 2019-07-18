@@ -82,6 +82,53 @@ def run_test(contract_name, transaction, blockchain_json=blockchain_json):
     return all_time_taken, init_time, exec_time, serialize_time, write_time
 
 
+def run_single_test(contract_name, no_of_state_entries):
+    benchmark_plans = get_benchmark_plans(no_of_state_entries, 1)
+    executed_once = False
+
+    for contract_plan in benchmark_plans:
+        try:
+            create_state_file(contract_name, contract_plan['state'])
+        except:
+            print("There is no contract named '{}'".format(contract_name))
+            print(
+                "The available contracts are: fungible-token, nonfungible-token, auction, crowdfunding")
+            return
+
+        if contract_plan['contract'] != contract_name:
+            continue
+
+        executed_once = True
+        test_plans = contract_plan['tests']
+
+        for test_plan in test_plans:
+            transactions = test_plan['transactions']
+            one_transaction = transactions[0]
+
+            all_time_taken, init_time, exec_time, \
+                serialize_time, write_time = run_test(
+                    contract_name, one_transaction
+                )
+
+            print('Using {:,} state entries in {} contract'.format(
+                no_of_state_entries, contract_name))
+            print('Total time: {0:.6f} ms'.format(
+                all_time_taken))
+            print('    init time: {0:.6f} ms'.format(
+                init_time))
+            print('    exec time: {0:.6f} ms'.format(
+                exec_time))
+            print('    serialize time: {0:.6f} ms'.format(
+                serialize_time))
+            print('    write time: {0:.6f} ms'.format(
+                write_time))
+            print()
+
+    if not executed_once:
+        print("There is no contract named '{}'".format(contract_name))
+        print("The available contracts are: fungible-token, nonfungible-token, auction, crowdfunding")
+
+
 def run_benchmark(no_of_state_entries, iterations=100):
     benchmark_plans = get_benchmark_plans(no_of_state_entries, iterations)
     for contract_plan in benchmark_plans:
@@ -157,7 +204,11 @@ def run_benchmark(no_of_state_entries, iterations=100):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 2:
-        run_benchmark(int(sys.argv[1]), int(sys.argv[2]))
-    else:
-        run_benchmark(int(sys.argv[1]))
+    if len(sys.argv) != 4:
+        print('Invalid number of arguments, wanted 3')
+        sys.exit()
+
+    if sys.argv[1] == 'multi':
+        run_benchmark(int(sys.argv[2]), int(sys.argv[3]))
+    elif sys.argv[1] == 'single':
+        run_single_test(sys.argv[2], int(sys.argv[3]))

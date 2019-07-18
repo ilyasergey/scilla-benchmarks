@@ -15,6 +15,16 @@ root_dir = os.path.dirname(os.path.abspath(__file__))
 results_dir = os.path.join(root_dir, 'results')
 
 
+def run_single_test(contract_name, no_of_state_entries):
+
+    print('RUNNING SINGLE TEST\n')
+
+    output = subprocess.check_output([
+        'python3.6', 'scilla-benchmark/scilla_benchmark.py',
+        'single', contract_name, str(no_of_state_entries)])
+    print(output.decode('utf-8'))
+
+
 def run_unit_test():
     # subprocess.run(['eval', '`opam config env`', '&&', 'make', 'test'],
     #                shell=True, cwd='/home/scilla')
@@ -32,7 +42,7 @@ def run_benchmark(queue, interpreter, state_size, iterations):
         interpreter=interpreter)
 
     output = subprocess.check_output(
-        ['python3.6', script_file, str(state_size), str(iterations)],
+        ['python3.6', script_file, 'multi', str(state_size), str(iterations)],
         stderr=subprocess.DEVNULL)
 
     # output = subprocess.check_output(['docker', 'run', '--name', container_id,
@@ -378,7 +388,7 @@ def create_results_dir():
 
 
 if __name__ == '__main__':
-    no_cmd = 'available commands are breakdown, exec, size'
+    no_cmd = 'available commands are breakdown, exec, size, single-test, unit-test'
 
     if len(sys.argv) < 2:
         print('No command specified. ' + no_cmd)
@@ -396,5 +406,7 @@ if __name__ == '__main__':
         run_size_comparison()
     elif command == 'unit-test':
         run_unit_test()
+    elif command == 'single-test':
+        run_single_test(sys.argv[2], int(sys.argv[3]))
     else:
         print("No commmand '{}' found".format(command) + '. ' + no_cmd)
