@@ -56,7 +56,7 @@ In particular, it's expected that the build process doesn't produce output for s
 
 To produce the benchmark results, a Docker container is used to run the tests.
 
-The docker container takes in `command` to run, where `command` could be `breakdown`, `exec` or `size`.
+The docker container takes in `command` to run, where `command` could be `breakdown`, `exec`, `size`, `unit-test` or `single-test`.
 
 In the prior rounds of testing when the paper was written, the number of test iterations used was 100. However, due to the long time it takes to complete a test, for example when 500k state entries are used, the test iterations are lowered. They are set to 5 iterations for the `exec` command and 1 iteration for the `breakdown` command.
 
@@ -118,13 +118,45 @@ The bar chart generated reflects the Figure 11(c) of the code size comparison.
 docker run -it kenchangh/scilla-benchmarks:oopsla size
 ```
 
+---
+
+### Running unit tests
+
+The Scilla codebase comes along with unit tests. The `unit-test` command runs these unit tests written in OCaml.
+
+```shell
+docker run -it kenchangh/scilla-benchmarks:oopsla unit-test
+```
+
+NOTE: The unit tests will fail with 3 failures, this is the expected behaviour. This is because the Scilla snapshot used contains instrumentation code, which affects the diff test.
+
+---
+
+### Running a single test
+
+The `single-test` command runs a single test from a contract's transition. The command accepts 2 arguments, `contract_name` and `no_of_state_entries`. Below is how the command is run:
+
+```shell
+docker run -it kenchangh/scilla-benchmarks:oopsla single-test <contract_name> <no_of_state_entries>
+```
+
+The options for the `contract_name` are `fungible-token`, `nonfungible-token`, `auction` and `crowdfunding`.
+
+For the `no_of_state_entries`, any integer is accepted. However, the recommendation is to use integers between `10000` to `500000`, as they reflect the paper's numbers.
+
+For example, to run the fungible-token contract with 10k entries:
+
+```shell
+docker run -it kenchangh/scilla-benchmarks:oopsla single-test fungible-token 10000
+```
+
 ## Submission-specific Snapshots of Scilla & EVM
 
 The scilla infrastructure is currently under active ongoing
 development. The results reported in the OOPSLA'19 submission were
 compiled using the dedicated branch of the repository, containing the
 snapshot as of the time of the submission, instrumented with
-additional output for the sake of performance comparison with EVM. 
+additional output for the sake of performance comparison with EVM.
 This snapshot is available at:
 
 [https://github.com/Zilliqa/scilla/tree/oopsla19-docker](https://github.com/Zilliqa/scilla/tree/oopsla19-docker)
