@@ -1,6 +1,8 @@
 # Scilla Benchmarks
 
-This is the artefact accompanying the OOPSLA 2019 paper entitled _"Safer Smart Contract Programming with Scilla"_. The artefact contains scripts for reproducing the quantitative comparison with Ethereum Virtual Machine, reported in Section 6.2 of the paper.
+[![DOI](https://zenodo.org/badge/165621363.svg)](https://zenodo.org/badge/latestdoi/165621363)
+
+This is the artefact accompanying the OOPSLA 2019 paper entitled **Safer Smart Contract Programming with Scilla**. The artefact contains scripts for reproducing the quantitative comparison with Ethereum Virtual Machine, reported in Section 6.2 of the paper.
 
 This repository contains the benchmarking suite for testing the performance of Scilla against EVM.
 
