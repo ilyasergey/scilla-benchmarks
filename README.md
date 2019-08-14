@@ -151,7 +151,7 @@ These tools have been modified to support persistence. The EVM instance is also
 instrumented with additional printing for the sake of performance comparison
 with Scilla. The Go-Ethereum version used by evm-tools is 1.4.10. The snapshot is available at:
 
-[https://github.com/evm-tools/tree/e2324a0c362acd930a66e62382c9f0a23af38d39](https://github.com/evm-tools/tree/e2324a0c362acd930a66e62382c9f0a23af38d39)
+[https://github.com/kenchangh/evm-tools/tree/e2324a0c362acd930a66e62382c9f0a23af38d39](https://github.com/kenchangh/evm-tools/tree/e2324a0c362acd930a66e62382c9f0a23af38d39)
 
 A packaged snapshot of `evm-tools` is already prepared in the Evaluation Scripts in `scilla-benchmarks/evm-benchmark/dist-evm`.
 
