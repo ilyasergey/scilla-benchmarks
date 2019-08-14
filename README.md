@@ -10,7 +10,7 @@ In order to run the benchmarks, you must have the [Docker](https://www.docker.co
 
 The source of this artefact can be obtained from GitHub:
 ```
-git clone https://github.com/AmritKumar/scilla-benchmarks
+git clone https://github.com/ilyasergey/scilla-benchmarks
 ```
 
 ## Installation
