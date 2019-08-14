@@ -8,15 +8,14 @@ This repository contains the benchmarking suite for testing the performance of S
 
 In order to run the benchmarks, you must have the [Docker](https://www.docker.com) platform installed and the docker daemon running.
 
-## Installation
-
-Once you have Docker ready, clone this repository:
-
+The source of this artefact can be obtained from GitHub:
 ```
 git clone https://github.com/AmritKumar/scilla-benchmarks
 ```
 
-In the root directory of `scilla-benchmarks`, build the image with the command:
+## Installation
+
+Once you have the Docker daemon running, in the root directory of `scilla-benchmarks` build the image with the command:
 
 ```
 docker build -t scilla-benchmarks:oopsla scilla-benchmarks
